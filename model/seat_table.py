@@ -20,6 +20,9 @@ class Seat:
     def clear_user(self):
         self.user = None
 
+    def __str__(self):
+        return f"Seat({self.pos}, {self.name}, {self.user})"
+
 
 class SeatGroup:
     def __init__(self, seats: list[Seat], name=None):
@@ -42,6 +45,9 @@ class SeatGroup:
 
     def get_next_available_seat(self):
         return next((seat for seat in self.seats if seat.is_available()), None)
+
+    def __str__(self):
+        return f"SeatGroup({self.name}, {self.count_seats()}, [" + ", ".join([str(seat) for seat in self.seats]) + "])"
 
 
 class SeatTable:
@@ -76,4 +82,7 @@ class SeatTable:
             return candidate
         self._cursor = 0
         return None
+
+    def __str__(self):
+        return f"SeatTable({self.name}, {self.size}, \n" + "\n".join([str(seat_group) for seat_group in self.seat_groups]) + "\n)"
 

@@ -3,6 +3,10 @@ Parsers
 """
 import csv
 import json
+from openpyxl import Workbook, load_workbook
+from openpyxl.cell import Cell
+
+from .constants import *
 
 from model import *
 
@@ -28,8 +32,136 @@ class PeopleParser:
                 people.append(Person(row[0], properties))
         return people
 
-
 class SeatTableParser:
+    def __init__(self):
+        self._metadata = None
+
+    # noinspection PyMethodMayBeStatic
+    def parse(self, file_path):
+        return None
+
+
+class SeatTableParserXlsxMetadata:
+    def __init__(self):
+        self.gen_time_cell_pos = None  # 存储格式为 (row, column)
+
+
+class SeatTableParserXlsx(SeatTableParser):
+    def __init__(self):
+        super().__init__()
+        self._metadata = SeatTableParserXlsxMetadata()
+
+    def parse(self, file_path):
+        wb = load_workbook(file_path)
+        ws = wb.worksheets[0]
+        visited = set()  # 记录已访问的座位单元格坐标 (row, column)
+        seat_groups = []
+        gen_time_cells = []
+
+        # 第一次遍历，收集所有占位符单元格
+        for row in ws.iter_rows():
+            for cell in row:
+                if cell.value == XLSX_GEN_TIME_PLACEHOLDER:
+                    gen_time_cells.append(cell)
+
+        # 处理生成时间占位符
+        if gen_time_cells:
+            gen_time_cell = gen_time_cells[0]
+            self.metadata.gen_time_cell_pos = (gen_time_cell.row, gen_time_cell.column)
+        else:
+            self.metadata.gen_time_cell_pos = None
+
+        # 第二次遍历，处理座位占位符
+        for row in ws.iter_rows():
+            for cell in row:
+                if cell.value == XLSX_SEAT_PLACEHOLDER and (cell.row, cell.column) not in visited:
+                    # 使用洪水填充找到连续区域
+                    region = self._find_contiguous_region(cell, ws, visited)
+                    # 检查区域四周是否有Thin边框
+                    if self._is_region_bordered(region, ws):
+                        seats = []
+                        for region_cell in region:
+                            # 将单元格位置转换为坐标，这里假设列为x，行为y
+                            x = region_cell.column
+                            y = region_cell.row
+                            seats.append(Seat((x, y), name=None))  # 可根据需要添加名称
+                        seat_group = SeatGroup(seats, name=None)  # 组名可后续处理
+                        seat_groups.append(seat_group)
+
+        # 假设表格尺寸为最大行列
+        max_row = ws.max_row
+        max_col = ws.max_column
+        return SeatTable(seat_groups, size=(max_col, max_row))
+
+    def _find_contiguous_region(self, start_cell: Cell, ws, visited: set):
+        """使用BFS找到与start_cell相连的连续区域，区域内的单元格共享非Thin边框"""
+        queue = [start_cell]
+        region = []
+        while queue:
+            cell = queue.pop(0)
+            coord = (cell.row, cell.column)
+            if coord in visited:
+                continue
+            visited.add(coord)
+            region.append(cell)
+            # 检查四个方向
+            directions = [('left', 0, -1), ('right', 0, 1),
+                          ('top', -1, 0), ('bottom', 1, 0)]
+            for border_dir, dr, dc in directions:
+                adj_row = cell.row + dr
+                adj_col = cell.column + dc
+                if 1 <= adj_row <= ws.max_row and 1 <= adj_col <= ws.max_column:
+                    adj_cell = ws.cell(row=adj_row, column=adj_col)
+                    if adj_cell.value == XLSX_SEAT_PLACEHOLDER:
+                        # 检查当前单元格与相邻单元格之间的边框是否为非Thin
+                        if self._is_border_open(cell, border_dir):
+                            if (adj_row, adj_col) not in visited:
+                                queue.append(adj_cell)
+        return region
+
+    def _is_border_open(self, cell: Cell, direction: str) -> bool:
+        """检查指定方向的边框是否为非Thin样式"""
+        border = getattr(cell.border, direction)
+        return border.style is None or border.style != 'thin'
+
+    def _is_region_bordered(self, region: list[Cell], ws) -> bool:
+        """检查区域四周是否全部由Thin边框包围"""
+        if not region:
+            return False
+        # 获取区域的边界
+        rows = {c.row for c in region}
+        cols = {c.column for c in region}
+        min_row, max_row = min(rows), max(rows)
+        min_col, max_col = min(cols), max(cols)
+
+        # 检查左边界（所有行的min_col列的左边框是否为thin）
+        for row in rows:
+            cell = ws.cell(row=row, column=min_col)
+            if cell.border.left.style != 'thin':
+                return False
+        # 检查右边界（所有行的max_col列的右边框）
+        for row in rows:
+            cell = ws.cell(row=row, column=max_col)
+            if cell.border.right.style != 'thin':
+                return False
+        # 检查上边界（所有列的min_row行的上边框）
+        for col in cols:
+            cell = ws.cell(row=min_row, column=col)
+            if cell.border.top.style != 'thin':
+                return False
+        # 检查下边界（所有列的max_row行的下边框）
+        for col in cols:
+            cell = ws.cell(row=max_row, column=col)
+            if cell.border.bottom.style != 'thin':
+                return False
+        return True
+
+    @property
+    def metadata(self):
+        return self._metadata
+
+
+class SeatTableParserJson(SeatTableParser):
     """
     ### Seat Table Format
     File Format: json
@@ -51,9 +183,6 @@ class SeatTableParser:
         ]
     }
     """
-    def __init__(self):
-        pass
-
     # noinspection PyMethodMayBeStatic
     def parse(self, file_path):
         with open(file_path, 'r') as f:
@@ -100,14 +229,26 @@ class RulesetParser:
 
 
 default_people_parser = PeopleParser()
-default_seat_table_parser = SeatTableParser()
+default_seat_table_parser_json = SeatTableParserJson()
+default_seat_table_parser_xlsx = SeatTableParserXlsx()
 default_ruleset_parser = RulesetParser()
 
 def parse_people(file_path):
     return default_people_parser.parse(file_path)
 
 def parse_seat_table(file_path):
-    return default_seat_table_parser.parse(file_path)
+    if file_path.endswith('.json'):
+        return default_seat_table_parser_json.parse(file_path)
+    elif file_path.endswith('.xlsx'):
+        return default_seat_table_parser_xlsx.parse(file_path)
+    else:
+        raise ValueError('Unsupported file format')
+
+def get_seat_table_metadata(file_path):
+    if hasattr(default_seat_table_parser_json, 'metadata'):
+        return default_seat_table_parser_json.metadata()
+    else:
+        return None
 
 def parse_ruleset(file_path):
     return default_ruleset_parser.parse(file_path)
