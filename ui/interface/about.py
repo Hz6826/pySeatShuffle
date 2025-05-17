@@ -1,24 +1,6 @@
 from .widget import *
 
 
-class UpdateSettingCard(SettingCard):
-    """
-    更新设置卡片
-    """
-    signalBool = pyqtSignal(bool)
-    signalStr = pyqtSignal(str)
-
-    def __init__(self, parent=None):
-        super().__init__(FIF.UPDATE, "更新", "更新程序至新版本", parent)
-
-        self.button1 = PrimaryPushButton("检查更新", self, FIF.DOWNLOAD)
-        self.button1.setToolTip("检查程序新版本更新")
-        self.button1.installEventFilter(ToolTipFilter(self.button1, 1000))
-
-        self.hBoxLayout.addWidget(self.button1, 0, Qt.AlignRight)
-        self.hBoxLayout.addSpacing(16)
-
-
 class HelpSettingCard(SettingCard):
     """
     帮助设置卡片
@@ -87,15 +69,9 @@ class ControlSettingCard(SettingCard):
         self.button3.setToolTip("重启程序")
         self.button3.installEventFilter(ToolTipFilter(self.button3, 1000))
 
-        self.button4 = PrimaryPushButton("卸载", self, FIF.DELETE)
-        self.button4.clicked.connect(lambda: os.popen(f"start {program.UNINSTALL_FILE}"))
-        self.button4.setToolTip("卸载程序")
-        self.button4.installEventFilter(ToolTipFilter(self.button4, 1000))
-
         self.hBoxLayout.addWidget(self.button1, 0, Qt.AlignRight)
         self.hBoxLayout.addWidget(self.button2, 0, Qt.AlignRight)
         self.hBoxLayout.addWidget(self.button3, 0, Qt.AlignRight)
-        self.hBoxLayout.addWidget(self.button4, 0, Qt.AlignRight)
         self.hBoxLayout.addSpacing(16)
 
     def button1Clicked(self):
@@ -116,7 +92,7 @@ class AboutSettingCard(SettingCard):
     """
 
     def __init__(self, parent=None):
-        super().__init__(FIF.INFO, "关于", f"{program.INFO}\n当前版本 {program.VERSION}", parent)
+        super().__init__(FIF.INFO, "关于", f"{program.INFO}\nVersion {program.VERSION}. Powered by zbGuiTemplate {program.CORE_VERSION}.", parent)
         self.button1 = HyperlinkButton(program.URL, "程序官网", self, FIF.LINK)
         self.button1.setToolTip("打开程序官网")
         self.button1.installEventFilter(ToolTipFilter(self.button1, 1000))
@@ -143,30 +119,12 @@ class AboutPage(zbw.BasicPage):
 
         self.cardGroup1 = zbw.CardGroup("关于", self)
 
-        self.updateSettingCard = UpdateSettingCard()
         self.helpSettingCard = HelpSettingCard()
         self.controlSettingCard = ControlSettingCard()
         self.aboutSettingCard = AboutSettingCard()
 
-        self.cardGroup1.addCard(self.updateSettingCard, "updateSettingCard")
         self.cardGroup1.addCard(self.helpSettingCard, "helpSettingCard")
         self.cardGroup1.addCard(self.controlSettingCard, "controlSettingCard")
         self.cardGroup1.addCard(self.aboutSettingCard, "aboutSettingCard")
 
-        self.bigInfoCard = zbw.BigInfoCard(self, data=False)
-        self.bigInfoCard.setImg(program.source("zb.png"))
-        self.bigInfoCard.image.setMinimumSize(150, 150)
-        self.bigInfoCard.setTitle(program.AUTHOR_NAME)
-        self.bigInfoCard.setInfo("Minecraft玩家，科幻迷，编程爱好者！")
-        self.bigInfoCard.addUrl("Github", "https://github.com/Ianzb", FIF.GITHUB)
-        self.bigInfoCard.addUrl("Bilibili", "https://space.bilibili.com/1043835434", FIF.LINK)
-        self.bigInfoCard.addTag("Minecraft")
-        self.bigInfoCard.addTag("编程")
-        self.bigInfoCard.addTag("科幻")
-        self.bigInfoCard.backButton.deleteLater()
-        self.bigInfoCard.mainButton.setText("个人网站")
-        self.bigInfoCard.mainButton.clicked.connect(lambda: webbrowser.open(program.AUTHOR_URL))
-        self.bigInfoCard.mainButton.setIcon(FIF.LINK)
-
-        self.vBoxLayout.addWidget(self.bigInfoCard, 0, Qt.AlignTop)
         self.vBoxLayout.addWidget(self.cardGroup1, 0, Qt.AlignTop)

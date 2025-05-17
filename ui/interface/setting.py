@@ -231,52 +231,6 @@ class MicaEffectSettingCard(SettingCard):
         self.window().setMicaEffectEnabled(self.button1.checked)
 
 
-class DownloadSettingCard(SettingCard):
-    """
-    下载文件设置卡片
-    """
-
-    def __init__(self, parent=None):
-        super().__init__(FIF.DOWNLOAD, "下载文件", f"当前路径：{setting.read("downloadPath")}", parent)
-        self.button1 = PushButton("下载目录", self, FIF.FOLDER_ADD)
-        self.button1.clicked.connect(self.button1Clicked)
-        self.button1.setToolTip("设置下载文件夹目录")
-        self.button1.installEventFilter(ToolTipFilter(self.button1, 1000))
-
-        self.hBoxLayout.addWidget(self.button1, 0, Qt.AlignRight)
-        self.hBoxLayout.addSpacing(16)
-
-        self.setAcceptDrops(True)
-
-    def setEvent(self, msg):
-        if msg == "downloadPath":
-            self.contentLabel.setText(f"当前路径：{setting.read("downloadPath")}")
-
-    def saveSetting(self, path: str):
-        if zb.existPath(path):
-            setting.save("downloadPath", path)
-        self.contentLabel.setText(f"当前路径：{setting.read("downloadPath")}")
-
-    def button1Clicked(self):
-        get = QFileDialog.getExistingDirectory(self, "选择下载目录", setting.read("downloadPath"))
-        self.saveSetting(get)
-
-    def dragEnterEvent(self, event):
-        if event.mimeData().hasUrls():
-            if len(event.mimeData().urls()) == 1:
-                if zb.isDir(event.mimeData().urls()[0].toLocalFile()):
-                    event.acceptProposedAction()
-                    self.contentLabel.setText("拖拽到此卡片即可快速导入目录！")
-
-    def dragLeaveEvent(self, event):
-        self.contentLabel.setText(f"当前路径：{setting.read("downloadPath")}")
-
-    def dropEvent(self, event):
-        if event.mimeData().hasUrls():
-            file = event.mimeData().urls()[0].toLocalFile()
-            self.saveSetting(file)
-
-
 class SettingPage(zbw.BasicPage):
     """
     设置页面
@@ -289,24 +243,16 @@ class SettingPage(zbw.BasicPage):
         self.setIcon(FIF.SETTING)
 
         self.cardGroup1 = zbw.CardGroup("外观", self)
-        self.cardGroup2 = zbw.CardGroup("行为", self)
-        self.cardGroup3 = zbw.CardGroup("功能", self)
 
         self.themeSettingCard = ThemeSettingCard(self)
         self.colorSettingCard = ColorSettingCard(self)
         self.micaEffectSettingCard = MicaEffectSettingCard(self)
 
-        self.downloadSettingCard = DownloadSettingCard(self)
-
         self.cardGroup1.addCard(self.themeSettingCard, "themeSettingCard")
         self.cardGroup1.addCard(self.colorSettingCard, "colorSettingCard")
         self.cardGroup1.addCard(self.micaEffectSettingCard, "micaEffectSettingCard")
 
-        self.cardGroup3.addCard(self.downloadSettingCard, "downloadSettingCard")
-
         self.vBoxLayout.addWidget(self.cardGroup1, 0, Qt.AlignTop)
-        self.vBoxLayout.addWidget(self.cardGroup2, 0, Qt.AlignTop)
-        self.vBoxLayout.addWidget(self.cardGroup3, 0, Qt.AlignTop)
 
         if not (zb.SYSTEM_VERSION[0] >= 10 and zb.SYSTEM_VERSION[2] >= 22000):
             self.micaEffectSettingCard.hide()
