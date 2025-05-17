@@ -3,7 +3,7 @@ Parsers
 """
 import csv
 import json
-from openpyxl import Workbook, load_workbook
+from openpyxl import load_workbook
 from openpyxl.cell import Cell
 
 from .constants import *
@@ -43,7 +43,7 @@ class SeatTableParser:
 
 class SeatTableParserXlsxMetadata:
     def __init__(self):
-        self.gen_time_cell_pos = None  # 存储格式为 (row, column)
+        self.gen_time_cell_pos = None  # 存储格式为 (column, row)，都从1开始
 
 
 class SeatTableParserXlsx(SeatTableParser):
@@ -67,7 +67,7 @@ class SeatTableParserXlsx(SeatTableParser):
         # 处理生成时间占位符
         if gen_time_cells:
             gen_time_cell = gen_time_cells[0]
-            self.metadata.gen_time_cell_pos = (gen_time_cell.row, gen_time_cell.column)
+            self.metadata.gen_time_cell_pos = (gen_time_cell.column, gen_time_cell.row)
         else:
             self.metadata.gen_time_cell_pos = None
 
