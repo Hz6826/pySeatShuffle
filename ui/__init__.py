@@ -14,7 +14,7 @@ class Window(zbw.Window):
         self.mainPage = MainPage(self)
         self.settingPage = SettingPage(self)
         self.aboutPage = AboutPage(self)
-        self.addPage(self.mainPage, self.mainPage.title(), self.mainPage.icon(), "top")
+        self.addPage(self.mainPage, "主页", FIF.HOME, "top")
         self.addSeparator("top")
         self.addSeparator("bottom")
         self.addPage(self.settingPage, self.settingPage.title(), self.settingPage.icon(), "bottom")
