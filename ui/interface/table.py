@@ -16,24 +16,16 @@ class TableInterface(HeaderCardWidget):
 
         self.gridLayout = QGridLayout(self)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
-        for i in range(7):#行
-            for j in range(12):#列
-                if j%3==0:
-                    self.gridLayout.addWidget(QWidget(self), i, j,0,5)
-                    continue
-                self.gridLayout.addWidget(TableWidget(self),i,j,1,1)
 
+        self.setTable()
+
+    def setTable(self):
+
+        for i in range(7):  # 行
+            for j in range(11):  # 列
+                if j % 3 == 2:
+                    self.gridLayout.addWidget(QWidget(self), i, j)
+                    continue
+                self.gridLayout.addWidget(PeopleWidgetBase(self), i, j, 1, 1)
 
         self.viewLayout.addLayout(self.gridLayout)
-class TableWidget(ElevatedCardWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.vBoxLayout = QVBoxLayout(self)
-        self.vBoxLayout.setAlignment(Qt.AlignCenter)
-
-        self.label=TitleLabel("test",self)
-        self.label.setWordWrap(True)
-
-        self.vBoxLayout.addWidget(self.label)
-
-        self.setLayout(self.vBoxLayout)

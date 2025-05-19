@@ -2,6 +2,7 @@
 Person Model
 """
 
+
 class Person:
     def __init__(self, name: str, properties: dict):
         self.name = name
@@ -9,3 +10,9 @@ class Person:
 
     def get_property(self, property_name: str):
         return self.properties.get(property_name)
+
+    def get_properties(self):
+        return self.properties
+
+    def get_name(self):
+        return self.name

@@ -11,10 +11,10 @@ class MainPage(QWidget):
 
         self.hBoxLayout = QHBoxLayout(self)
 
-        self.listPage = EditInterface(self)
-        self.tablePage= TableInterface(self)
+        self.editInterface = EditInterface(self)
+        self.tableInterface= TableInterface(self)
 
-        self.hBoxLayout.addWidget(self.tablePage,2)
-        self.hBoxLayout.addWidget(self.listPage,0)
+        self.hBoxLayout.addWidget(self.tableInterface, 2)
+        self.hBoxLayout.addWidget(self.editInterface, 0)
 
         self.setLayout(self.hBoxLayout)

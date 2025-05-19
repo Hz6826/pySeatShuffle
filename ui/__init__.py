@@ -39,24 +39,12 @@ class Window(zbw.Window):
             self.infoBar = InfoBar(InfoBarIcon.ERROR, "错误", "设置文件数据错误，已自动恢复至默认选项，具体错误原因请查看程序日志！", Qt.Orientation.Vertical, True, -1, InfoBarPosition.TOP_RIGHT, self.mainPage)
             self.infoBar.show()
 
-    def keyPressEvent(self, QKeyEvent):
-        """
-        自定义按键事件
-        """
-        # Esc键
-        if QKeyEvent.key() == Qt.Key.Key_Escape:
-            if setting.read("hideWhenClose"):
-                self.hide()
-
     def closeEvent(self, QCloseEvent):
         """
         自定义关闭事件
         """
         QCloseEvent.ignore()
-        if setting.read("hideWhenClose"):
-            self.hide()
-        else:
-            program.close()
+        program.close()
 
 
 logging.debug("程序主窗口类初始化成功！")

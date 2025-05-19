@@ -19,6 +19,8 @@ import zbToolLib as zb
 import zbWidgetLib as zbw
 from qtpy import *
 
+import core
+
 
 class Program:
     """
@@ -51,6 +53,13 @@ class Program:
 
     STARTUP_ARGUMENT = sys.argv[1:]  # 程序启动参数
     THREAD_POOL = ThreadPoolExecutor()  # 程序公用线程池
+
+    PEOPLE_PARASER = core.PeopleParser()
+    XLSX_PARSER = core.SeatTableParserXlsx()
+    JSON_PARSER = core.SeatTableParserJson()
+    TABLE = None
+    PEOPLE = None
+    PEOPLE_WIDGET=[]
 
     def __init__(self):
         # 创建数据目录
