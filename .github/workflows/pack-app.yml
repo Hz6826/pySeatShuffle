@@ -35,7 +35,7 @@ jobs:
         # --windowed     隐藏控制台窗口（GUI应用）
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: executable
+        name: pySeatShuffle
         path: dist/ # PyInstaller 默认输出目录
