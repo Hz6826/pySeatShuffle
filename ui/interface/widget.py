@@ -39,7 +39,7 @@ class PeopleWidget(QWidget):
 
         drag = QDrag(self)
         mime_data = QMimeData()
-        mime_data.setText("PeopleWidget")
+        mime_data.setText(str(self._people))
         mime_data.setData("PeopleWidget", QByteArray(self.getPeople().get_name().encode("utf-8")))
         drag.setMimeData(mime_data)
 
@@ -75,20 +75,20 @@ class PeopleWidgetBase(CardWidget):
         self.setLayout(self.vBoxLayout)
 
     def dragEnterEvent(self, event):
-        if event.mimeData().hasText() and event.mimeData().text() == "PeopleWidget" and event.mimeData().hasFormat("PeopleWidget"):
+        if event.mimeData().hasText() and event.mimeData().hasFormat("PeopleWidget"):
             event.accept()
         else:
             event.ignore()
 
     def dragMoveEvent(self, event):
-        if event.mimeData().hasText() and event.mimeData().text() == "PeopleWidget" and event.mimeData().hasFormat("PeopleWidget"):
+        if event.mimeData().hasText() and event.mimeData().hasFormat("PeopleWidget"):
             event.setDropAction(Qt.MoveAction)
             event.accept()
         else:
             event.ignore()
 
     def dropEvent(self, event):
-        if event.mimeData().hasText() and event.mimeData().text() == "PeopleWidget" and event.mimeData().hasFormat("PeopleWidget"):
+        if event.mimeData().hasText() and event.mimeData().hasFormat("PeopleWidget"):
             person_name = bytes(event.mimeData().data("PeopleWidget")).decode()
             for i in program.PEOPLE_WIDGET:
                 if i.getPeople().get_name() == person_name:
