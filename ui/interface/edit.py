@@ -66,7 +66,7 @@ class EditInterface(HeaderCardWidget):
             if not get[0]:
                 raise FileNotFoundError("未找到文件！")
             if zb.getFileSuffix(get[0], False) == ".csv":
-                program.PEOPLE = program.PEOPLE_PARASER.parse(get[0])
+                program.PEOPLE = program.PEOPLE_PARSER.parse(get[0])
             infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导入名单表格文件{zb.getFileName(get[0])}成功！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM_RIGHT, self.window().mainPage)
             logging.info(f"导入名单表格文件{get[0]}成功！")
 
@@ -96,6 +96,8 @@ class ListInterface(zbw.BasicTab):
 
         self.vBoxLayout.addWidget(self.cardGroup)
 
+        self.setAcceptDrops(True)
+
     def addPeople(self, people: list):
         self.cardGroup.clearCard()
         for i in people:
@@ -104,3 +106,23 @@ class ListInterface(zbw.BasicTab):
             widget = PeopleWidgetBase(self)
             widget.setPeople(people_widget)
             self.cardGroup.addCard(widget, i.get_name())
+
+    def dragEnterEvent(self, a0):
+        if a0.mimeData().hasUrls():
+            a0.acceptProposedAction()
+
+    def dropEvent(self, a0):
+        if a0.mimeData().hasUrls():
+            if len(a0.mimeData().urls()) > 1:
+                return
+            url = a0.mimeData().urls()[0]
+            if zb.getFileSuffix(url.toLocalFile()) in [".csv", ".xlsx", ".json"]:
+                program.PEOPLE = program.PEOPLE_PARSER.parse(url.toLocalFile())
+                self.addPeople(program.PEOPLE)
+                infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导入名单表格文件{zb.getFileName(url.toLocalFile())}成功！",
+                                  Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM_RIGHT,
+                                  self.window().mainPage)
+                logging.info(f"导入名单表格文件{zb.getFileName(url.toLocalFile())}成功！")
+
+                self.parent().listInterface.addPeople(program.PEOPLE)
+                infoBar.show()

@@ -54,7 +54,7 @@ class Program:
     STARTUP_ARGUMENT = sys.argv[1:]  # 程序启动参数
     THREAD_POOL = ThreadPoolExecutor()  # 程序公用线程池
 
-    PEOPLE_PARASER = core.PeopleParser()
+    PEOPLE_PARSER = core.PeopleParser()
     XLSX_PARSER = core.SeatTableParserXlsx()
     JSON_PARSER = core.SeatTableParserJson()
     TABLE = None
