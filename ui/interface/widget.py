@@ -28,12 +28,25 @@ class PeopleWidget(QWidget):
         if not event.buttons() & Qt.LeftButton:
             return
 
+        drag_pixmap = QPixmap(self.size())
+        drag_pixmap.fill(Qt.transparent)
+        self.render(drag_pixmap)
+
+        painter = QPainter(drag_pixmap)
+        painter.setCompositionMode(QPainter.CompositionMode_DestinationIn)
+        painter.fillRect(drag_pixmap.rect(), QColor(255, 255, 255, 128))  # 设置50%透明度
+        painter.end()
+
         drag = QDrag(self)
         mime_data = QMimeData()
         mime_data.setText("PeopleWidget")
         mime_data.setData("PeopleWidget", QByteArray(self.getPeople().get_name().encode("utf-8")))
         drag.setMimeData(mime_data)
 
+        drag.setPixmap(drag_pixmap)
+        drag.setHotSpot(event.pos() - self.rect().topLeft())
+
+        # 执行拖拽操作
         drag.exec_(Qt.MoveAction)
 
     def getPeople(self):
