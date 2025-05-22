@@ -24,8 +24,12 @@ class TableInterface(HeaderCardWidget):
         for i in range(7):  # 行
             for j in range(11):  # 列
                 if j % 3 == 2:
-                    self.gridLayout.addWidget(QWidget(self), i, j)
+                    self.gridLayout.addWidget(QWidget(self), i, j,1,1)
+                    self.gridLayout.setRowStretch(i, 1)
+                    self.gridLayout.setColumnStretch(j, 1)
                     continue
-                self.gridLayout.addWidget(PeopleWidgetBase(self), i, j, 1, 1)
+                self.gridLayout.addWidget(PeopleWidgetTableBase(self), i, j, 1, 1)
+                self.gridLayout.setRowStretch(i, 2)
+                self.gridLayout.setColumnStretch(j, 2)
 
         self.viewLayout.addLayout(self.gridLayout)

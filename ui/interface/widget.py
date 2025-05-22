@@ -4,14 +4,14 @@ from ..program import *
 class PeopleWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setMinimumSize(50, 50)
+        self.setMinimumSize(30, 20)
         self._people = None
         self.setAcceptDrops(True)
 
         self.vBoxLayout = QVBoxLayout(self)
         self.vBoxLayout.setAlignment(Qt.AlignCenter)
 
-        self.label = TitleLabel("", self)
+        self.label = SubtitleLabel("", self)
         self.label.setWordWrap(True)
 
         self.vBoxLayout.addWidget(self.label)
@@ -55,6 +55,7 @@ class PeopleWidget(QWidget):
     def setPeople(self, person: core.Person):
         self._people = person
         self.label.setText(self.getPeople().get_name())
+        zbw.setToolTip(self, "\n".join([self.getPeople().get_name()] + [f"{k}：{v}" for k, v in self.getPeople().get_properties().items()]))
 
     def movePeople(self, new):
         old = self.parent()
@@ -62,7 +63,7 @@ class PeopleWidget(QWidget):
         new.setPeople(self)
 
 
-class PeopleWidgetBase(CardWidget):
+class PeopleWidgetTableBase(CardWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._people = None
@@ -73,6 +74,9 @@ class PeopleWidgetBase(CardWidget):
         self.vBoxLayout.setAlignment(Qt.AlignCenter)
 
         self.setLayout(self.vBoxLayout)
+
+        self.setContentsMargins(0, 0, 0, 0)
+        self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasText() and event.mimeData().hasFormat("PeopleWidget"):
@@ -97,6 +101,41 @@ class PeopleWidgetBase(CardWidget):
             event.accept()
         else:
             event.ignore()
+
+    def getPeople(self):
+        return self._people
+
+    def setPeople(self, people: PeopleWidget):
+        if self._people is not None:
+            old_person = self.getPeople()
+            old_parent = people.parent()
+            if old_parent is not None:
+                old_person.movePeople(old_parent)
+
+        self.removePeople()
+        self._people = people
+        self.vBoxLayout.addWidget(people)
+
+    def removePeople(self):
+        self.vBoxLayout.removeWidget(self.getPeople())
+        self._people = None
+
+    def deletePeople(self):
+        self.removePeople()
+
+    def clearPeople(self):
+        self.removePeople()
+
+
+class PeopleWidgetBase(CardWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._people = None
+
+        self.vBoxLayout = QVBoxLayout(self)
+        self.vBoxLayout.setAlignment(Qt.AlignCenter)
+
+        self.setLayout(self.vBoxLayout)
 
     def getPeople(self):
         return self._people

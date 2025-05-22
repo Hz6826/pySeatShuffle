@@ -16,3 +16,6 @@ class Person:
 
     def get_name(self):
         return self.name
+
+    def __str__(self):
+        return f"Person(name={self.name}, properties={self.properties})"
