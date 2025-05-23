@@ -1,12 +1,11 @@
 from ..program import *
 
 
-class PeopleWidget(QWidget):
+class PeopleWidget(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setMinimumSize(30, 20)
         self._people = None
-        self.setAcceptDrops(True)
 
         self.vBoxLayout = QVBoxLayout(self)
         self.vBoxLayout.setAlignment(Qt.AlignCenter)
@@ -109,8 +108,10 @@ class PeopleWidgetTableBase(CardWidget):
         if self._people is not None:
             old_person = self.getPeople()
             old_parent = people.parent()
-            if old_parent is not None:
+            if isinstance(old_parent, PeopleWidgetTableBase):
                 old_person.movePeople(old_parent)
+            else:
+                return
 
         self.removePeople()
         self._people = people

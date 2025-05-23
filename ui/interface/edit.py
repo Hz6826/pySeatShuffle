@@ -49,9 +49,9 @@ class EditInterface(HeaderCardWidget):
         try:
             if not get[0]:
                 raise FileNotFoundError("未找到文件！")
-            if zb.getFileSuffix(get[0], False) == ".xlsx":
+            if zb.getFileSuffix(get[0]) == ".xlsx":
                 program.TABLE = program.XLSX_PARSER.parse(get[0])
-            elif zb.getFileSuffix(get[0], False) == ".json":
+            elif zb.getFileSuffix(get[0]) == ".json":
                 program.TABLE = program.JSON_PARSER.parse(get[0])
             logging.info(f"导入座位表格文件{get[0]}成功！")
             infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导入座位表格文件{zb.getFileName(get[0])}成功！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM_RIGHT, self.window().mainPage)
@@ -65,7 +65,7 @@ class EditInterface(HeaderCardWidget):
         try:
             if not get[0]:
                 raise FileNotFoundError("未找到文件！")
-            if zb.getFileSuffix(get[0], False) == ".csv":
+            if zb.getFileSuffix(get[0]) == ".csv":
                 program.PEOPLE = program.PEOPLE_PARSER.parse(get[0])
             infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导入名单表格文件{zb.getFileName(get[0])}成功！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM_RIGHT, self.window().mainPage)
             logging.info(f"导入名单表格文件{get[0]}成功！")
@@ -96,8 +96,6 @@ class ListInterface(zbw.BasicTab):
 
         self.vBoxLayout.addWidget(self.cardGroup)
 
-        self.setAcceptDrops(True)
-
     def addPeople(self, people: list):
         self.cardGroup.clearCard()
         for i in people:
@@ -106,23 +104,3 @@ class ListInterface(zbw.BasicTab):
             widget = PeopleWidgetBase(self)
             widget.setPeople(people_widget)
             self.cardGroup.addCard(widget, i.get_name())
-
-    def dragEnterEvent(self, a0):
-        if a0.mimeData().hasUrls():
-            a0.acceptProposedAction()
-
-    def dropEvent(self, a0):
-        if a0.mimeData().hasUrls():
-            if len(a0.mimeData().urls()) > 1:
-                return
-            url = a0.mimeData().urls()[0]
-            if zb.getFileSuffix(url.toLocalFile()) in [".csv", ".xlsx", ".json"]:
-                program.PEOPLE = program.PEOPLE_PARSER.parse(url.toLocalFile())
-                self.addPeople(program.PEOPLE)
-                infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导入名单表格文件{zb.getFileName(url.toLocalFile())}成功！",
-                                  Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM_RIGHT,
-                                  self.window().mainPage)
-                logging.info(f"导入名单表格文件{zb.getFileName(url.toLocalFile())}成功！")
-
-                self.parent().listInterface.addPeople(program.PEOPLE)
-                infoBar.show()
