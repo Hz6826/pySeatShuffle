@@ -51,15 +51,10 @@ class PeopleWidget(QFrame):
     def getPeople(self):
         return self._people
 
-    def setPeople(self, person: core.Person):
-        self._people = person
+    def setPeople(self, people: core.Person):
+        self._people = people
         self.label.setText(self.getPeople().get_name())
         zbw.setToolTip(self, "\n".join([self.getPeople().get_name()] + [f"{k}：{v}" for k, v in self.getPeople().get_properties().items()]))
-
-    def movePeople(self, new):
-        old = self.parent()
-        old.removePeople()
-        new.setPeople(self)
 
 
 class PeopleWidgetTableBase(CardWidget):
@@ -92,9 +87,9 @@ class PeopleWidgetTableBase(CardWidget):
 
     def dropEvent(self, event):
         if event.mimeData().hasText() and event.mimeData().hasFormat("PeopleWidget"):
-            person_name = bytes(event.mimeData().data("PeopleWidget")).decode()
+            people_name = bytes(event.mimeData().data("PeopleWidget")).decode()
             for i in program.PEOPLE_WIDGET:
-                if i.getPeople().get_name() == person_name:
+                if i.getPeople().get_name() == people_name:
                     self.setPeople(i)
             event.setDropAction(Qt.MoveAction)
             event.accept()
@@ -105,21 +100,28 @@ class PeopleWidgetTableBase(CardWidget):
         return self._people
 
     def setPeople(self, people: PeopleWidget):
-        if self._people is not None:
-            old_person = self.getPeople()
-            old_parent = people.parent()
+        old_people = self._people
+        old_parent = people.parent()
+        if old_people:
             if isinstance(old_parent, PeopleWidgetTableBase):
-                old_person.movePeople(old_parent)
+                self.removePeople()
+                old_parent.setPeople(old_people)
             else:
                 return
+        else:
+            if isinstance(old_parent, PeopleWidgetTableBase):
+                old_parent.removePeople()
 
+            elif isinstance(old_parent, PeopleWidgetBase):
+                old_parent.removePeople()
         self.removePeople()
         self._people = people
         self.vBoxLayout.addWidget(people)
 
     def removePeople(self):
-        self.vBoxLayout.removeWidget(self.getPeople())
-        self._people = None
+        self.vBoxLayout.removeWidget(self._people)
+        self._people, people = None, self._people
+        return people
 
     def deletePeople(self):
         self.removePeople()
@@ -149,10 +151,8 @@ class PeopleWidgetBase(CardWidget):
         self.vBoxLayout.addWidget(people)
 
     def removePeople(self):
-        self.vBoxLayout.removeWidget(self.getPeople())
-        self._people = None
-        self.parent().removeCard(self._people.get_name())
-        self.deletePeople()
+        self.parent().removeCard(self._people._people.get_name())
+        self.deleteLater()
 
     def deletePeople(self):
         self.removePeople()

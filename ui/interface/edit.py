@@ -109,6 +109,7 @@ class ListInterface(zbw.BasicTab):
         self.cardGroup = zbw.CardGroup(self)
         self.cardGroup.setShowTitle(False)
 
+
         self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
         self.vBoxLayout.setSpacing(0)
         self.vBoxLayout.addWidget(self.cardGroup)
