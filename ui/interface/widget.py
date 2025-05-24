@@ -133,8 +133,11 @@ class PeopleWidgetBase(CardWidget):
         super().__init__(parent)
         self._people = None
 
+        self.setMaximumHeight(50)
+
         self.vBoxLayout = QVBoxLayout(self)
         self.vBoxLayout.setAlignment(Qt.AlignCenter)
+        self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
 
         self.setLayout(self.vBoxLayout)
 
@@ -142,18 +145,14 @@ class PeopleWidgetBase(CardWidget):
         return self._people
 
     def setPeople(self, people: PeopleWidget):
-        if self._people is not None:
-            old_person = self.getPeople()
-            old_parent = people.parent()
-            old_person.movePeople(old_parent)
-
-        self.removePeople()
         self._people = people
         self.vBoxLayout.addWidget(people)
 
     def removePeople(self):
         self.vBoxLayout.removeWidget(self.getPeople())
         self._people = None
+        self.parent().removeCard(self._people.get_name())
+        self.deletePeople()
 
     def deletePeople(self):
         self.removePeople()

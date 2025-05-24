@@ -6,31 +6,37 @@ from .widget import *
 class EditInterface(HeaderCardWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        self.setMinimumWidth(250)
+        self.setMinimumWidth(100)
+        self.setMaximumWidth(250)
         self.setTitle("编辑区")
 
         self.vBoxLayout2 = QVBoxLayout(self.view)
         self.vBoxLayout2.setContentsMargins(0, 0, 0, 0)
         self.viewLayout.addLayout(self.vBoxLayout2)
 
-        self.hBoxLayout = QHBoxLayout(self)
+        self.importFileChooser1 = zbw.FileChooser(self)
+        self.importFileChooser1.setSuffix({"表格文件": [".xlsx", ".json"]})
+        self.importFileChooser1.setOnlyOne(True)
+        self.importFileChooser1.setDefaultPath(setting.read("downloadPath"))
+        self.importFileChooser1.setDescription("座位表")
+        self.importFileChooser1.setFixedHeight(100)
+        self.importFileChooser1.fileChoosedSignal.connect(self.importSeatButtonClicked)
 
-        self.importSeatButton = PrimaryPushButton("导入座位", self, FIF.DOWN)
-        self.importSeatButton.clicked.connect(self.importSeatButtonClicked)
-
-        self.importPeopleButton = PrimaryPushButton("导入名单", self, FIF.DOWN)
-        self.importPeopleButton.clicked.connect(self.importPeopleButtonClicked)
+        self.importFileChooser2 = zbw.FileChooser(self)
+        self.importFileChooser2.setSuffix({"名单文件": [".csv"]})
+        self.importFileChooser2.setOnlyOne(True)
+        self.importFileChooser2.setDefaultPath(setting.read("downloadPath"))
+        self.importFileChooser2.setDescription("名单")
+        self.importFileChooser2.setFixedHeight(100)
+        self.importFileChooser2.fileChoosedSignal.connect(self.importPeopleButtonClicked)
 
         self.exportButton = PushButton("导出", self, FIF.UP)
-
-        self.hBoxLayout.addWidget(self.importSeatButton)
-        self.hBoxLayout.addWidget(self.importPeopleButton)
-        self.hBoxLayout.addWidget(self.exportButton)
 
         self.pivot = SegmentedWidget(self)
         self.stackedWidget = QStackedWidget(self)
 
-        self.vBoxLayout2.addLayout(self.hBoxLayout)
+        self.vBoxLayout2.addWidget(self.importFileChooser1, 0, Qt.AlignCenter)
+        self.vBoxLayout2.addWidget(self.exportButton)
         self.vBoxLayout2.addWidget(self.pivot)
         self.vBoxLayout2.addWidget(self.stackedWidget)
 
@@ -39,13 +45,21 @@ class EditInterface(HeaderCardWidget):
         self.listInterface = ListInterface(self)
         self.rulesInterface = RulesInterface(self)
 
-        self.addSubInterface(self.listInterface, "列表", "列表")
+        self.listInterface.vBoxLayout.insertWidget(0, self.importFileChooser2, 0, Qt.AlignCenter)
+
+        self.addSubInterface(self.listInterface, "名单", "名单")
         self.addSubInterface(self.rulesInterface, "规则", "规则")
 
-        self.pivot.setCurrentItem("列表")
+        self.pivot.setCurrentItem("名单")
 
-    def importSeatButtonClicked(self):
-        get = QFileDialog.getOpenFileName(self, "选择座位表格", setting.read("downloadPath"), "表格文件 (*.xlsx *.json)")
+        setting.signalConnect(self.settingChanged)
+
+    def settingChanged(self, name):
+        if name == "downloadPath":
+            self.importFileChooser1.setDefaultPath(setting.read("downloadPath"))
+            self.importFileChooser2.setDefaultPath(setting.read("downloadPath"))
+
+    def importSeatButtonClicked(self, get):
         try:
             if not get[0]:
                 raise FileNotFoundError("未找到文件！")
@@ -53,28 +67,27 @@ class EditInterface(HeaderCardWidget):
                 program.TABLE = program.XLSX_PARSER.parse(get[0])
             elif zb.getFileSuffix(get[0]) == ".json":
                 program.TABLE = program.JSON_PARSER.parse(get[0])
+            setting.save("downloadPath", zb.getFileDir(get[0]))
             logging.info(f"导入座位表格文件{get[0]}成功！")
-            infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导入座位表格文件{zb.getFileName(get[0])}成功！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM_RIGHT, self.window().mainPage)
+            infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导入座位表格文件{zb.getFileName(get[0])}成功！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM, self.window().mainPage)
         except Exception:
             logging.error(f"导入座位表格文件{get[0]}失败，报错信息：{traceback.format_exc()}！")
-            infoBar = InfoBar(InfoBarIcon.ERROR, "失败", f"导入座位表格文件{zb.getFileName(get[0])}失败！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM_RIGHT, self.window().mainPage)
+            infoBar = InfoBar(InfoBarIcon.ERROR, "失败", f"导入座位表格文件{zb.getFileName(get[0])}失败！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM, self.window().mainPage)
         infoBar.show()
 
-    def importPeopleButtonClicked(self):
-        get = QFileDialog.getOpenFileName(self, "选择名单表格", setting.read("downloadPath"), "表格文件 (*.csv)")
+    def importPeopleButtonClicked(self, get):
         try:
             if not get[0]:
                 raise FileNotFoundError("未找到文件！")
             if zb.getFileSuffix(get[0]) == ".csv":
                 program.PEOPLE = program.PEOPLE_PARSER.parse(get[0])
-            infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导入名单表格文件{zb.getFileName(get[0])}成功！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM_RIGHT, self.window().mainPage)
+            setting.save("downloadPath", zb.getFileDir(get[0]))
             logging.info(f"导入名单表格文件{get[0]}成功！")
-
+            infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导入名单表格文件{zb.getFileName(get[0])}成功！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM, self.window().mainPage)
             self.listInterface.addPeople(program.PEOPLE)
-
         except Exception:
             logging.error(f"导入名单表格文件{get[0]}失败，报错信息：{traceback.format_exc()}！")
-            infoBar = InfoBar(InfoBarIcon.ERROR, "失败", f"导入名单表格文件{zb.getFileName(get[0])}失败！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM_RIGHT, self.window().mainPage)
+            infoBar = InfoBar(InfoBarIcon.ERROR, "失败", f"导入名单表格文件{zb.getFileName(get[0])}失败！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM, self.window().mainPage)
         infoBar.show()
 
     def addSubInterface(self, widget, objectName, text):
@@ -86,6 +99,7 @@ class EditInterface(HeaderCardWidget):
 class RulesInterface(zbw.BasicPage):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
+        self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
 
 
 class ListInterface(zbw.BasicTab):
@@ -93,7 +107,10 @@ class ListInterface(zbw.BasicTab):
         super().__init__(parent=parent)
 
         self.cardGroup = zbw.CardGroup(self)
+        self.cardGroup.setShowTitle(False)
 
+        self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
+        self.vBoxLayout.setSpacing(0)
         self.vBoxLayout.addWidget(self.cardGroup)
 
     def addPeople(self, people: list):
