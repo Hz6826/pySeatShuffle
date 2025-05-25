@@ -58,11 +58,26 @@ class SeatTableParserXlsx(SeatTableParser):
         seat_groups = []
         gen_time_cells = []
 
-        # 第一次遍历，收集所有占位符单元格
+        # 第一次遍历，收集所有占位符单元格，找到座位表offset
+        offset_x = -1
+        offset_y = -1
+        max_row = 0
+        max_col = 0
         for row in ws.iter_rows():
             for cell in row:
+                if cell.value == XLSX_SEAT_PLACEHOLDER:
+                    if offset_x == -1 or offset_x > cell.column:
+                        offset_x = cell.column
+                    if offset_y == -1 or offset_y > cell.row:
+                        offset_y = cell.row
+                    if cell.row > max_row:
+                        max_row = cell.row
+                    if cell.column > max_col:
+                        max_col = cell.column
                 if cell.value == XLSX_GEN_TIME_PLACEHOLDER:
                     gen_time_cells.append(cell)
+        max_row -= offset_y - 1
+        max_col -= offset_x - 1
 
         # 处理生成时间占位符
         if gen_time_cells:
@@ -82,15 +97,13 @@ class SeatTableParserXlsx(SeatTableParser):
                         seats = []
                         for region_cell in region:
                             # 将单元格位置转换为坐标，这里假设列为x，行为y
-                            x = region_cell.column
-                            y = region_cell.row
+                            x = region_cell.column - offset_x + 1
+                            y = region_cell.row - offset_y + 1
                             seats.append(Seat((x, y), name=None))  # 可根据需要添加名称
                         seat_group = SeatGroup(seats, name=None)  # 组名可后续处理
                         seat_groups.append(seat_group)
 
         # 假设表格尺寸为最大行列
-        max_row = ws.max_row
-        max_col = ws.max_column
         return SeatTable(seat_groups, size=(max_col, max_row))
 
     def _find_contiguous_region(self, start_cell: Cell, ws, visited: set):

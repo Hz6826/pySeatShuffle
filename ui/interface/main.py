@@ -130,7 +130,7 @@ class EditInterface(HeaderCardWidget):
                 manager.setTable(manager.XLSX_PARSER.parse(get[0]))
             elif zb.getFileSuffix(get[0]) == ".json":
                 manager.setTable(manager.JSON_PARSER.parse(get[0]))
-            self.window().mainPage.tableInterface.setTable()
+            self.window().mainPage.tableInterface.setTable()  # FIXME: see GH-2
             setting.save("downloadPath", zb.getFileDir(get[0]))
             logging.info(f"导入座位表格文件{get[0]}成功！")
             infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导入座位表格文件{zb.getFileName(get[0])}成功！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM, self.window().mainPage)

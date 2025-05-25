@@ -5,4 +5,9 @@ def test_seat_table_xlsx_parser():
     seat_table = parser.parse(r".test\config\seat_table.xlsx")
     print(seat_table)
     print(parser.metadata)
-    assert parser.metadata.gen_time_cell_pos == (8, 9)
+    assert parser.metadata.gen_time_cell_pos == (12, 10)
+
+def test_seat_table_json_parser():
+    parser = core.SeatTableParserJson()
+    seat_table = parser.parse(r".test\config\seat_table.json")
+    print(seat_table)
