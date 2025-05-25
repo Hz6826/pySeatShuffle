@@ -2,7 +2,6 @@ from logging.config import dictConfig
 
 from .program import *
 from .setting import *
-import logging
 
 QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
@@ -49,6 +48,5 @@ dictConfig({
 )
 
 logging.info(f"程序启动参数{program.STARTUP_ARGUMENT}!")
-
 
 logging.info("程序动态数据api初始化成功！")

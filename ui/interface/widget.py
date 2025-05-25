@@ -17,8 +17,6 @@ class PeopleWidget(QFrame):
 
         self.setLayout(self.vBoxLayout)
 
-        program.PEOPLE_WIDGET.append(self)
-
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
             self.drag_start_position = event.pos()
@@ -39,7 +37,7 @@ class PeopleWidget(QFrame):
         drag = QDrag(self)
         mime_data = QMimeData()
         mime_data.setText(str(self._people))
-        mime_data.setData("PeopleWidget", QByteArray(self.getPeople().get_name().encode("utf-8")))
+        mime_data.setData("PeopleWidget", QByteArray(self._people.get_name().encode("utf-8")))
         drag.setMimeData(mime_data)
 
         drag.setPixmap(drag_pixmap)
@@ -54,7 +52,6 @@ class PeopleWidget(QFrame):
     def setPeople(self, people: core.Person):
         self._people = people
         self.label.setText(self.getPeople().get_name())
-        zbw.setToolTip(self, "\n".join([self.getPeople().get_name()] + [f"{k}：{v}" for k, v in self.getPeople().get_properties().items()]))
 
 
 class PeopleWidgetTableBase(CardWidget):
@@ -88,9 +85,8 @@ class PeopleWidgetTableBase(CardWidget):
     def dropEvent(self, event):
         if event.mimeData().hasText() and event.mimeData().hasFormat("PeopleWidget"):
             people_name = bytes(event.mimeData().data("PeopleWidget")).decode()
-            for i in program.PEOPLE_WIDGET:
-                if i.getPeople().get_name() == people_name:
-                    self.setPeople(i)
+            if manager.hasPeople(people_name):
+                self.setPeople(manager.getPeopleWidget(people_name))
             event.setDropAction(Qt.MoveAction)
             event.accept()
         else:
@@ -117,6 +113,7 @@ class PeopleWidgetTableBase(CardWidget):
         self.removePeople()
         self._people = people
         self.vBoxLayout.addWidget(people)
+        zbw.setToolTip(self, "\n".join([self._people._people.get_name()] + [f"{k}：{v}" for k, v in self._people._people.get_properties().items()]))
 
     def removePeople(self):
         self.vBoxLayout.removeWidget(self._people)
@@ -149,6 +146,7 @@ class PeopleWidgetBase(CardWidget):
     def setPeople(self, people: PeopleWidget):
         self._people = people
         self.vBoxLayout.addWidget(people)
+        zbw.setToolTip(self, "\n".join([self._people._people.get_name()] + [f"{k}：{v}" for k, v in self._people._people.get_properties().items()]))
 
     def removePeople(self):
         self.parent().removeCard(self._people._people.get_name())
@@ -159,3 +157,59 @@ class PeopleWidgetBase(CardWidget):
 
     def clearPeople(self):
         self.removePeople()
+
+
+class TableManager:
+    PEOPLE_PARSER = core.PeopleParser()
+    XLSX_PARSER = core.SeatTableParserXlsx()
+    JSON_PARSER = core.SeatTableParserJson()
+
+    def __init__(self):
+        self._table = None
+        self._people = {}
+
+    def setTable(self, table):
+        self._table = table
+
+    def getTable(self):
+        return self._table
+
+    def setPeople(self, widget: list | dict):
+        if isinstance(widget, list):
+            for i in widget:
+                self._people[i.getPeople()] = i
+        elif isinstance(widget, dict):
+            for k, v in widget:
+                self._people[k] = v
+
+    def getPeople(self):
+        return self._people
+
+    def getPeopleWidget(self, name):
+        for k, v in self._people.items():
+            if k.get_name() == name:
+                return v
+
+    def hasPeople(self, name):
+        return name in [i.get_name() for i in self._people.keys()]
+
+    def removePeople(self, name):
+        for k in list(self._people.keys()):
+            if k.get_name() == name:
+                widget = self._people.pop(k)
+                if isinstance(widget.parent(), PeopleWidgetBase):
+                    widget.parent().removePeople()
+                elif isinstance(widget.parent(), PeopleWidgetTableBase):
+                    widget.parent().removePeople()
+                widget.deleteLater()
+
+    def clearPeople(self):
+        for k,v in self._people.items():
+            if isinstance(v.parent(), PeopleWidgetBase):
+                v.parent().removePeople()
+            elif isinstance(v.parent(), PeopleWidgetTableBase):
+                v.parent().removePeople()
+            v.deleteLater()
+        self._people={}
+
+manager = TableManager()

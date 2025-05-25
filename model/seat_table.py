@@ -2,14 +2,18 @@
 Seat Table Model
 """
 
+
 class Seat:
-    def __init__(self, pos: tuple[int, int], name: str=None):
+    def __init__(self, pos: tuple[int, int], name: str = None):
         self.pos = pos
         self.name = name
         self.user = None
 
     def is_available(self):
         return self.user is not None
+
+    def get_pos(self):
+        return self.pos
 
     def get_user(self):
         return self.user
@@ -85,4 +89,3 @@ class SeatTable:
 
     def __str__(self):
         return f"SeatTable({self.name}, {self.size}, \n" + "\n".join([str(seat_group) for seat_group in self.seat_groups]) + "\n)"
-
