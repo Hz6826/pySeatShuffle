@@ -1,9 +1,9 @@
 from ui import *
 
 
-if os.environ.get("PSS_ENV").lower() == "dev":
-    import faulthandler
-    faulthandler.enable()
+# if os.environ.get("PSS_ENV").lower() == "dev":
+#     import faulthandler
+#     faulthandler.enable()
 
 window = Window()
 if program.isStartup and setting.read("autoHide"):

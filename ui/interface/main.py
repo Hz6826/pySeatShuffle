@@ -45,16 +45,16 @@ class TableInterface(HeaderCardWidget):
         while self.gridLayout.count():
             item = self.gridLayout.takeAt(0)
             widget = item.widget()
-            self.parent().editInterface.listInterface.addPeople(list(manager.getPeople().keys()))
-
             if widget is not None:
                 widget.deleteLater()
+        self.parent().editInterface.listInterface.addPeople(list(manager.getPeople().keys()))
 
         table = manager.getTable()
+        offset_c, offset_r = table.get_offset()
         for group in table.get_seat_groups():
             for seat in group.get_seats():
                 c, r = seat.get_pos()
-                self.gridLayout.addWidget(PeopleWidgetTableBase(self), r - 2, c - 1, 1, 1)
+                self.gridLayout.addWidget(PeopleWidgetTableBase(self), r - offset_r, c - offset_c, 1, 1)
                 # self.gridLayout.setRowStretch(r-1, 2)
                 # self.gridLayout.setColumnStretch(c-1, 2)
         ct, rt = table.get_size()
@@ -78,7 +78,7 @@ class EditInterface(HeaderCardWidget):
         self.viewLayout.addLayout(self.vBoxLayout2)
 
         self.importFileChooser1 = zbw.FileChooser(self)
-        self.importFileChooser1.setSuffix({"表格文件": [".xlsx", ".json"]})
+        self.importFileChooser1.setSuffix({"表格文件": [".xlsx", ".xls", ".json"]})
         self.importFileChooser1.setOnlyOne(True)
         self.importFileChooser1.setDefaultPath(setting.read("downloadPath"))
         self.importFileChooser1.setDescription("座位表")
@@ -130,7 +130,7 @@ class EditInterface(HeaderCardWidget):
                 manager.setTable(manager.XLSX_PARSER.parse(get[0]))
             elif zb.getFileSuffix(get[0]) == ".json":
                 manager.setTable(manager.JSON_PARSER.parse(get[0]))
-            self.window().mainPage.tableInterface.setTable()  # FIXME: see GH-2
+            self.window().mainPage.tableInterface.setTable()
             setting.save("downloadPath", zb.getFileDir(get[0]))
             logging.info(f"导入座位表格文件{get[0]}成功！")
             infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导入座位表格文件{zb.getFileName(get[0])}成功！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM, self.window().mainPage)

@@ -13,6 +13,9 @@ class Seat:
         return self.user is not None
 
     def get_pos(self):
+        """
+        :return: row, column
+        """
         return self.pos
 
     def get_user(self):
@@ -62,10 +65,21 @@ class SeatTable:
 
         self._cursor = 0
 
+    def get_offset(self):
+        """
+        :return: row, column
+        """
+        min_r = min([seat.get_pos()[0] for group in self.seat_groups for seat in group.get_seats()])
+        min_c = min([seat.get_pos()[1] for group in self.seat_groups for seat in group.get_seats()])
+        return min_r, min_c
+
     def get_seat_groups(self):
         return self.seat_groups
 
     def get_size(self):
+        """
+        :return: rows, columns
+        """
         return self.size
 
     def get_name(self):
