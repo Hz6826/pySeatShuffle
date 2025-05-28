@@ -5,6 +5,7 @@ class Window(zbw.Window):
     """
     主窗口
     """
+    initFinished = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -34,10 +35,13 @@ class Window(zbw.Window):
         w, h = desktop.width(), desktop.height()
         self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
 
+        self.settingPage.themeSettingCard.set()
+
         # 设置数据异常提醒
         if setting.errorState:
             self.infoBar = InfoBar(InfoBarIcon.ERROR, "错误", "设置文件数据错误，已自动恢复至默认选项，具体错误原因请查看程序日志！", Qt.Orientation.Vertical, True, -1, InfoBarPosition.TOP_RIGHT, self.mainPage)
             self.infoBar.show()
+        self.initFinished.emit()
 
     def closeEvent(self, QCloseEvent):
         """

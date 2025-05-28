@@ -28,7 +28,7 @@ class Program:
     """
     NAME = "py排座工具"  # 程序名称
     VERSION = "0.0.1"  # 程序版本
-    CORE_VERSION = "5.3.0"
+    CORE_VERSION = "5.3.1" # 内核版本
     TITLE = f"{NAME} {VERSION}"  # 程序标题
     URL = "https://ianzb.github.io/project/zbGuiTemplate.html"  # 程序网址
     LICENSE = "GPLv3"  # 程序许可协议
@@ -46,10 +46,9 @@ class Program:
     INSTALL_PATH = zb.getFileDir(MAIN_FILE_PATH)  # 程序安装路径
     SOURCE_PATH = r"ui\img"  # 程序资源文件路径
     PROGRAM_PID = os.getpid()  # 程序pid
-    DATA_PATH = zb.joinPath(zb.USER_PATH, "zb")  # 程序数据路径
+    DATA_PATH = zb.joinPath(zb.USER_PATH, r"zb\pySeatShuffle")  # 程序数据路径
     SETTING_FILE_PATH = zb.joinPath(DATA_PATH, "settings.json")  # 程序设置文件路径
     LOGGING_FILE_PATH = zb.joinPath(DATA_PATH, "logging.log")  # 程序日志文件路径
-    ADDON_PATH = zb.joinPath(DATA_PATH, "addon")  # 程序插件路径
 
     STARTUP_ARGUMENT = sys.argv[1:]  # 程序启动参数
     THREAD_POOL = ThreadPoolExecutor()  # 程序公用线程池

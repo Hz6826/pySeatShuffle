@@ -36,8 +36,8 @@ class ThemeSettingCard(ExpandSettingCard):
         self.viewLayout.addWidget(self.radioButton2)
         self.viewLayout.addWidget(self.radioButton3)
 
-        self.set()
         setting.signalConnect(self.setEvent)
+        self.window().initFinished.connect(self.set)
 
         self._adjustViewSize()
 
@@ -138,8 +138,8 @@ class ColorSettingCard(ExpandGroupSettingCard):
 
         self._adjustViewSize()
 
-        self.set()
         setting.signalConnect(self.setEvent)
+        self.window().initFinished.connect(self.set)
 
     def getDefaultColor(self):
         from qframelesswindow.utils import getSystemAccentColor
@@ -213,8 +213,8 @@ class MicaEffectSettingCard(SettingCard):
         self.hBoxLayout.addWidget(self.button1, 0, Qt.AlignRight)
         self.hBoxLayout.addSpacing(16)
 
-        self.set()
         setting.signalConnect(self.setEvent)
+        self.window().initFinished.connect(self.set)
 
     def set(self):
         self.button1.checkedChanged.disconnect(self.button1Clicked)
