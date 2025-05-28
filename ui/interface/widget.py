@@ -55,9 +55,11 @@ class PeopleWidget(QFrame):
 
 
 class PeopleWidgetTableBase(CardWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, c: int = 0, r: int = 0):
         super().__init__(parent)
         self._people = None
+
+        self._pos = (c, r)
 
         self.setAcceptDrops(True)
 
@@ -132,7 +134,7 @@ class PeopleWidgetBase(CardWidget):
         super().__init__(parent)
         self._people = None
 
-        self.setMaximumHeight(50)
+        self.setMaximumHeight(40)
 
         self.vBoxLayout = QVBoxLayout(self)
         self.vBoxLayout.setAlignment(Qt.AlignCenter)
@@ -204,12 +206,13 @@ class TableManager:
                 widget.deleteLater()
 
     def clearPeople(self):
-        for k,v in self._people.items():
+        for k, v in self._people.items():
             if isinstance(v.parent(), PeopleWidgetBase):
                 v.parent().removePeople()
             elif isinstance(v.parent(), PeopleWidgetTableBase):
                 v.parent().removePeople()
             v.deleteLater()
-        self._people={}
+        self._people = {}
+
 
 manager = TableManager()

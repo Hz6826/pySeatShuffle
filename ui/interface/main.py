@@ -26,6 +26,8 @@ class TableInterface(HeaderCardWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
 
+        self._map = {}
+
         self.listWidget = ListWidget(self)
         self.listWidget.setContentsMargins(0, 0, 0, 0)
 
@@ -49,21 +51,44 @@ class TableInterface(HeaderCardWidget):
                 widget.deleteLater()
         self.parent().editInterface.listInterface.addPeople(list(manager.getPeople().keys()))
 
+        self._map = {}
+
         table = manager.getTable()
         offset_c, offset_r = table.get_offset()
         for group in table.get_seat_groups():
             for seat in group.get_seats():
                 c, r = seat.get_pos()
-                self.gridLayout.addWidget(PeopleWidgetTableBase(self), r - offset_r, c - offset_c, 1, 1)
-                # self.gridLayout.setRowStretch(r-1, 2)
-                # self.gridLayout.setColumnStretch(c-1, 2)
+                widget = PeopleWidgetTableBase(self, c, r)
+                self._map[(c, r)] = widget
+                self.gridLayout.addWidget(widget, r - offset_r, c - offset_c, 1, 1)
         ct, rt = table.get_size()
         for r in range(rt):
             for c in range(ct):
                 if not self.gridLayout.itemAtPosition(r, c):
                     self.gridLayout.addWidget(QWidget(self), r, c, 1, 1)
-                    # self.gridLayout.setRowStretch(r, 1)
-                    # self.gridLayout.setColumnStretch(c, 1)
+                self.gridLayout.setRowStretch(r, 1)
+                self.gridLayout.setColumnStretch(c, 1)
+
+    def getWidget(self, c, r):
+        """
+        获取指定位置的widget
+        :param c: 列
+        :param r: 行
+        :return: widget
+        """
+        return self._map.get((c, r), None)
+
+    def getPeople(self, c, r):
+        """
+        获取指定位置的人员
+        :param c: 列
+        :param r: 行
+        :return: People
+        """
+        widget = self.getWidget(c, r)
+        if widget:
+            return widget.getPeople().getPeople()
+        return None
 
 
 class EditInterface(HeaderCardWidget):
@@ -83,7 +108,7 @@ class EditInterface(HeaderCardWidget):
         self.importFileChooser1.setDefaultPath(setting.read("downloadPath"))
         self.importFileChooser1.setDescription("座位表")
         self.importFileChooser1.setFixedHeight(100)
-        self.importFileChooser1.fileChoosedSignal.connect(self.importSeatButtonClicked)
+        self.importFileChooser1.fileChoosedSignal.connect(self.importSeat)
 
         self.importFileChooser2 = zbw.FileChooser(self)
         self.importFileChooser2.setSuffix({"名单文件": [".csv"]})
@@ -91,14 +116,19 @@ class EditInterface(HeaderCardWidget):
         self.importFileChooser2.setDefaultPath(setting.read("downloadPath"))
         self.importFileChooser2.setDescription("名单")
         self.importFileChooser2.setFixedHeight(100)
-        self.importFileChooser2.fileChoosedSignal.connect(self.importPeopleButtonClicked)
+        self.importFileChooser2.fileChoosedSignal.connect(self.importPeople)
+
+        self.generateButton = PushButton("生成", self, FIF.ADD)
+        self.generateButton.clicked.connect(self.generate)
 
         self.exportButton = PushButton("导出", self, FIF.UP)
+        self.exportButton.clicked.connect(self.export)
 
         self.pivot = SegmentedWidget(self)
         self.stackedWidget = QStackedWidget(self)
 
         self.vBoxLayout2.addWidget(self.importFileChooser1, 0, Qt.AlignCenter)
+        self.vBoxLayout2.addWidget(self.generateButton)
         self.vBoxLayout2.addWidget(self.exportButton)
         self.vBoxLayout2.addWidget(self.pivot)
         self.vBoxLayout2.addWidget(self.stackedWidget)
@@ -122,7 +152,16 @@ class EditInterface(HeaderCardWidget):
             self.importFileChooser1.setDefaultPath(setting.read("downloadPath"))
             self.importFileChooser2.setDefaultPath(setting.read("downloadPath"))
 
-    def importSeatButtonClicked(self, get):
+    def generate(self):
+        presets = self.window().mainPage.tableInterface._map
+        # TODO 添加生成座位表格功能
+        pass
+
+    def export(self):
+        # TODO 添加导出功能
+        pass
+
+    def importSeat(self, get):
         try:
             if not get[0]:
                 raise FileNotFoundError("未找到文件！")
@@ -139,7 +178,7 @@ class EditInterface(HeaderCardWidget):
             infoBar = InfoBar(InfoBarIcon.ERROR, "失败", f"导入座位表格文件{zb.getFileName(get[0])}失败！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM, self.window().mainPage)
         infoBar.show()
 
-    def importPeopleButtonClicked(self, get):
+    def importPeople(self, get):
         try:
             if not get[0]:
                 raise FileNotFoundError("未找到文件！")
