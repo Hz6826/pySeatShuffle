@@ -19,3 +19,9 @@ class Person:
 
     def __str__(self):
         return f"Person(name={self.name}, properties={self.properties})"
+
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "properties": self.properties
+        }

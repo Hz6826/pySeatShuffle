@@ -2,7 +2,6 @@
 Parsers
 """
 import csv
-import json
 from openpyxl import load_workbook
 from openpyxl.cell import Cell
 
@@ -33,25 +32,18 @@ class PeopleParser:
         return people
 
 class SeatTableParser:
-    def __init__(self):
-        self._metadata = None
-
     # noinspection PyMethodMayBeStatic
     def parse(self, file_path):
         return None
 
 
-class SeatTableParserXlsxMetadata:
-    def __init__(self):
-        self.gen_time_cell_pos = None  # 存储格式为 (column, row)，都从1开始
-
-
 class SeatTableParserXlsx(SeatTableParser):
     def __init__(self):
         super().__init__()
-        self._metadata = SeatTableParserXlsxMetadata()
 
     def parse(self, file_path):
+        metadata = SeatTableMetadataXlsx(file_path)
+
         wb = load_workbook(file_path)
         ws = wb.worksheets[0]
         visited = set()  # 记录已访问的座位单元格坐标 (row, column)
@@ -59,32 +51,35 @@ class SeatTableParserXlsx(SeatTableParser):
         gen_time_cells = []
 
         # 第一次遍历，收集所有占位符单元格，找到座位表offset
-        offset_x = -1
-        offset_y = -1
+        offset_col = -1
+        offset_row = -1
         max_row = 0
         max_col = 0
         for row in ws.iter_rows():
             for cell in row:
                 if cell.value == XLSX_SEAT_PLACEHOLDER:
-                    if offset_x == -1 or offset_x > cell.column:
-                        offset_x = cell.column
-                    if offset_y == -1 or offset_y > cell.row:
-                        offset_y = cell.row
+                    if offset_col == -1 or offset_col > cell.column:
+                        offset_col = cell.column
+                    if offset_row == -1 or offset_row > cell.row:
+                        offset_row = cell.row
                     if cell.row > max_row:
                         max_row = cell.row
                     if cell.column > max_col:
                         max_col = cell.column
                 if cell.value == XLSX_GEN_TIME_PLACEHOLDER:
                     gen_time_cells.append(cell)
-        max_row -= offset_y - 1
-        max_col -= offset_x - 1
+        max_row -= offset_row - 1
+        max_col -= offset_col - 1
+
+        metadata.offset_row = offset_row - 1  # don't know this
+        metadata.offset_col = offset_col - 1
 
         # 处理生成时间占位符
         if gen_time_cells:
             gen_time_cell = gen_time_cells[0]
-            self.metadata.gen_time_cell_pos = (gen_time_cell.column, gen_time_cell.row)
+            metadata.gen_time_cell_pos = (gen_time_cell.row, gen_time_cell.column)
         else:
-            self.metadata.gen_time_cell_pos = None
+            metadata.gen_time_cell_pos = None
 
         # 第二次遍历，处理座位占位符
         for row in ws.iter_rows():
@@ -97,14 +92,14 @@ class SeatTableParserXlsx(SeatTableParser):
                         seats = []
                         for region_cell in region:
                             # 将单元格位置转换为坐标，这里假设列为x，行为y
-                            x = region_cell.column - offset_x + 1
-                            y = region_cell.row - offset_y + 1
+                            x = region_cell.column - offset_col + 1
+                            y = region_cell.row - offset_row + 1
                             seats.append(Seat((x, y), name=None))  # 可根据需要添加名称
                         seat_group = SeatGroup(seats, name=None)  # 组名可后续处理
                         seat_groups.append(seat_group)
 
         # 假设表格尺寸为最大行列
-        return SeatTable(seat_groups, size=(max_col, max_row))
+        return SeatTable(seat_groups, size=(max_col, max_row), metadata=metadata)
 
     def _find_contiguous_region(self, start_cell: Cell, ws, visited: set):
         """使用BFS找到与start_cell相连的连续区域，区域内的单元格共享非Thin边框"""
@@ -169,10 +164,6 @@ class SeatTableParserXlsx(SeatTableParser):
                 return False
         return True
 
-    @property
-    def metadata(self):
-        return self._metadata
-
 
 class SeatTableParserJson(SeatTableParser):
     """
@@ -187,6 +178,7 @@ class SeatTableParserJson(SeatTableParser):
                 "seats": [
                     {
                         name: "smth",  (optional)
+                        user: "smth",
                         pos: [x, y]
                     },
                     ...
@@ -198,6 +190,8 @@ class SeatTableParserJson(SeatTableParser):
     """
     # noinspection PyMethodMayBeStatic
     def parse(self, file_path):
+        metadata = SeatTableMetadataJson(file_path)
+
         with open(file_path, 'r') as f:
             data = json.load(f)
         seat_groups = []
@@ -206,7 +200,7 @@ class SeatTableParserJson(SeatTableParser):
             for seat in group['seats']:
                 seats.append(Seat(seat['pos'], seat.get('name', None)))
             seat_groups.append(SeatGroup(seats, group.get('name', None)))
-        return SeatTable(seat_groups, data.get('size', None), data.get('name', None))
+        return SeatTable(seat_groups, data.get('size', None), data.get('name', None), metadata=metadata)
 
 
 class RulesetParser:
@@ -256,12 +250,6 @@ def parse_seat_table(file_path):
         return default_seat_table_parser_xlsx.parse(file_path)
     else:
         raise ValueError('Unsupported file format')
-
-def get_seat_table_metadata(file_path):
-    if hasattr(default_seat_table_parser_json, 'metadata'):
-        return default_seat_table_parser_json.metadata()
-    else:
-        return None
 
 def parse_ruleset(file_path):
     return default_ruleset_parser.parse(file_path)

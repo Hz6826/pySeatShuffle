@@ -1,6 +1,9 @@
 """
 Seat Table Model
 """
+import json
+
+from core.constants import *
 
 
 class Seat:
@@ -30,6 +33,13 @@ class Seat:
     def __str__(self):
         return f"Seat({self.pos}, {self.name}, {self.user})"
 
+    def to_dict(self):
+        return {
+            "pos": self.pos,
+            "name": self.name,
+            "user": self.user.to_dict() if self.user is not None else None
+        }
+
 
 class SeatGroup:
     def __init__(self, seats: list[Seat], name=None):
@@ -56,12 +66,23 @@ class SeatGroup:
     def __str__(self):
         return f"SeatGroup({self.name}, {self.count_seats()}, [" + ", ".join([str(seat) for seat in self.seats]) + "])"
 
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "seats": [seat.to_dict() for seat in self.seats]
+        }
+
 
 class SeatTable:
-    def __init__(self, seat_groups: list[SeatGroup], size, name=None):
+    def __init__(self, seat_groups: list[SeatGroup], size, name=None, metadata=None):
         self.seat_groups = seat_groups
         self.size = size
         self.name = name
+
+        if metadata is None:
+            self.metadata = SeatTableMetadata("unknown", "")
+        else:
+            self.metadata = metadata
 
         self._cursor = 0
 
@@ -103,3 +124,34 @@ class SeatTable:
 
     def __str__(self):
         return f"SeatTable({self.name}, {self.size}, \n" + "\n".join([str(seat_group) for seat_group in self.seat_groups]) + "\n)"
+
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "size": self.size,
+            "seat_groups": [seat_group.to_dict() for seat_group in self.seat_groups]
+        }
+
+
+class SeatTableMetadata:
+    def __init__(self, format, file_path):
+        self.format = format
+        self.file_path = file_path
+
+    def __str__(self):
+        return f"SeatTableMetadata(format={self.format}, file_path={self.file_path})"
+
+
+class SeatTableMetadataXlsx(SeatTableMetadata):
+    def __init__(self, file_path):
+        super().__init__(F_XLSX, file_path)
+        self.gen_time_cell_pos = None  # 存储格式为 (column, row)，都从1开始
+        self.offset_row = 0
+        self.offset_col = 0
+
+
+class SeatTableMetadataJson(SeatTableMetadata):
+    def __init__(self, file_path):
+        super().__init__(F_JSON, file_path)
+
+

@@ -2,3 +2,4 @@
 /.test/config/~$*.xlsx
 build
 dist
+/.test/run
