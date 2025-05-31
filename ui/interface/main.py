@@ -44,6 +44,11 @@ class TableInterface(HeaderCardWidget):
 
     def setTable(self):
 
+        for r in range(self.gridLayout.rowCount()):
+            self.gridLayout.setRowStretch(r, 0)
+        for c in range(self.gridLayout.columnCount()):
+            self.gridLayout.setColumnStretch(c, 0)
+
         while self.gridLayout.count():
             item = self.gridLayout.takeAt(0)
             widget = item.widget()
@@ -69,6 +74,19 @@ class TableInterface(HeaderCardWidget):
                 self.gridLayout.setRowStretch(r, 1)
                 self.gridLayout.setColumnStretch(c, 1)
 
+    def setWidget(self, c, r, people: PeopleWidget):
+        """
+        设置指定位置的widget
+        :param c: 列
+        :param r: 行
+        :return: widget
+        """
+        widget: PeopleWidgetTableBase | None = self._map.get((c, r), None)
+        if widget:
+            widget.setPeople(people)
+            return True
+        return False
+
     def getWidget(self, c, r):
         """
         获取指定位置的widget
@@ -78,6 +96,13 @@ class TableInterface(HeaderCardWidget):
         """
         return self._map.get((c, r), None)
 
+    def getAllWidgets(self):
+        """
+        获取所有widget
+        :return: dict
+        """
+        return self._map
+
     def getPeople(self, c, r):
         """
         获取指定位置的人员
@@ -85,10 +110,17 @@ class TableInterface(HeaderCardWidget):
         :param r: 行
         :return: People
         """
-        widget = self.getWidget(c, r)
+        widget: PeopleWidgetTableBase | None = self.getWidget(c, r)
         if widget:
             return widget.getPeople().getPeople()
         return None
+
+    def getAllPeople(self):
+        """
+        获取所有人员
+        :return: dict
+        """
+        return {k: v.getPeople().getPeople() for k, v in self._map.items() if v.getPeople() is not None and v.getPeople().getPeople() is not None}
 
 
 class EditInterface(HeaderCardWidget):
@@ -153,13 +185,37 @@ class EditInterface(HeaderCardWidget):
             self.importFileChooser2.setDefaultPath(setting.read("downloadPath"))
 
     def generate(self):
-        presets = self.window().mainPage.tableInterface._map
-        # TODO 添加生成座位表格功能
-        pass
+        if not manager.getTable():
+            return
+        presets = self.window().mainPage.tableInterface.getAllPeople()
+        manager.getTable().clear_all_users()
+        for k, v in presets.items():
+            manager.getTable().set_user_in_pos(k, v)
+
+        # TODO 此处写排座代码和显示代码
 
     def export(self):
-        # TODO 添加导出功能
-        pass
+        try:
+            if not manager.getTable():
+                return
+            presets = self.window().mainPage.tableInterface.getAllPeople()
+            manager.getTable().clear_all_users()
+            for k, v in presets.items():
+                manager.getTable().set_user_in_pos(k, v)
+            path, _ = QFileDialog.getSaveFileName(self, "导出座位表格文件", setting.read("downloadPath"), "表格文件 (*.xlsx;;*.xls;;*.json)")
+            if not path:
+                return
+            if not zb.getFileSuffix(path, True, False):
+                path += ".xlsx"
+            manager.EXPORTER.export(manager.getTable(), format=zb.getFileSuffix(path, True, False), path=path)
+            logging.info(f"导出座位表格文件{path[0]}成功！")
+            infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导出座位表格文件{zb.getFileName(path[0])}成功！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM, self.window().mainPage)
+
+        except Exception:
+            logging.error(f"导出座位表格文件失败，报错信息：{traceback.format_exc()}！")
+            infoBar = InfoBar(InfoBarIcon.ERROR, "失败", f"导出座位表格文件失败！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM, self.window().mainPage)
+
+        infoBar.show()
 
     def importSeat(self, get):
         try:

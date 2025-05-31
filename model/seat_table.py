@@ -1,7 +1,6 @@
 """
 Seat Table Model
 """
-import json
 
 from core.constants import *
 
@@ -94,6 +93,41 @@ class SeatTable:
         min_c = min([seat.get_pos()[1] for group in self.seat_groups for seat in group.get_seats()])
         return min_r, min_c
 
+    def set_user_in_pos(self, pos: tuple[int, int], user):
+        """
+        Set user in the specified position.
+        :param pos: (row, column)
+        :param user: User object
+        :return: True if successful, False otherwise
+        """
+        for seat_group in self.seat_groups:
+            for seat in seat_group.get_seats():
+                if seat.get_pos() == pos:
+                    seat.set_user(user)
+                    return True
+        return False
+
+    def remove_user_in_pos(self, pos: tuple[int, int]):
+        """
+        Remove user in the specified position.
+        :param pos: (row, column)
+        :return: True if successful, False otherwise
+        """
+        for seat_group in self.seat_groups:
+            for seat in seat_group.get_seats():
+                if seat.get_pos() == pos:
+                    seat.clear_user()
+                    return True
+        return False
+
+    def clear_all_users(self):
+        """
+        Clear all users in the seat table.
+        """
+        for seat_group in self.seat_groups:
+            for seat in seat_group.get_seats():
+                seat.clear_user()
+
     def get_seat_groups(self):
         return self.seat_groups
 
@@ -153,5 +187,3 @@ class SeatTableMetadataXlsx(SeatTableMetadata):
 class SeatTableMetadataJson(SeatTableMetadata):
     def __init__(self, file_path):
         super().__init__(F_JSON, file_path)
-
-

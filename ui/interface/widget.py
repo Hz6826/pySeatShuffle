@@ -165,10 +165,11 @@ class TableManager:
     PEOPLE_PARSER = core.PeopleParser()
     XLSX_PARSER = core.SeatTableParserXlsx()
     JSON_PARSER = core.SeatTableParserJson()
+    EXPORTER = core.SeatTableExporter()
 
     def __init__(self):
-        self._table = None
-        self._people = {}
+        self._table: core.SeatTable | None = None
+        self._people: dict = {}
 
     def setTable(self, table):
         self._table = table
