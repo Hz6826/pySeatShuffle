@@ -93,15 +93,15 @@ class SeatTableParserXlsx(SeatTableParser):
                     if self._is_region_bordered(region, ws):
                         seats = []
                         for region_cell in region:
-                            # 将单元格位置转换为坐标，这里假设列为x，行为y
-                            x = region_cell.column - offset_col + 1
-                            y = region_cell.row - offset_row + 1
-                            seats.append(Seat((x, y), name=None))  # 可根据需要添加名称
+                            # 将单元格位置转换为坐标，r为行，c为列
+                            r = region_cell.row - offset_row + 1
+                            c = region_cell.column - offset_col + 1
+                            seats.append(Seat((r, c), name=None))  # 可根据需要添加名称
                         seat_group = SeatGroup(seats, name=None)  # 组名可后续处理
                         seat_groups.append(seat_group)
 
         # 假设表格尺寸为最大行列
-        return SeatTable(seat_groups, size=(max_col, max_row), metadata=metadata)
+        return SeatTable(seat_groups, size=(max_row, max_col), metadata=metadata)
 
     def _find_contiguous_region(self, start_cell: Cell, ws, visited: set):
         """使用BFS找到与start_cell相连的连续区域，区域内的单元格共享非Thin边框"""

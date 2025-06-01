@@ -7,7 +7,7 @@ from core.constants import *
 
 class Seat:
     def __init__(self, pos: tuple[int, int], name: str = None):
-        self.pos = pos
+        self.pos = pos  # row, col
         self.name = name
         self.user = None
 
@@ -74,6 +74,12 @@ class SeatGroup:
 
 class SeatTable:
     def __init__(self, seat_groups: list[SeatGroup], size, name=None, metadata=None):
+        """
+        :param seat_groups: list of SeatGroup
+        :param size: row, column
+        :param name:
+        :param metadata:
+        """
         self.seat_groups = seat_groups
         self.size = size
         self.name = name

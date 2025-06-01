@@ -55,11 +55,11 @@ class PeopleWidget(QFrame):
 
 
 class PeopleWidgetTableBase(CardWidget):
-    def __init__(self, parent=None, c: int = 0, r: int = 0):
+    def __init__(self, parent=None, r: int = 0, c: int = 0):
         super().__init__(parent)
         self._people = None
 
-        self._pos = (c, r)
+        self._pos = (r, c)
 
         self.setAcceptDrops(True)
 

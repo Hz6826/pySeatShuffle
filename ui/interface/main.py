@@ -59,14 +59,14 @@ class TableInterface(HeaderCardWidget):
         self._map = {}
 
         table = manager.getTable()
-        offset_c, offset_r = table.get_offset()
+        offset_r, offset_c = table.get_offset()
         for group in table.get_seat_groups():
             for seat in group.get_seats():
-                c, r = seat.get_pos()
-                widget = PeopleWidgetTableBase(self, c, r)
-                self._map[(c, r)] = widget
+                r, c = seat.get_pos()
+                widget = PeopleWidgetTableBase(self, r, c)
+                self._map[(r, c)] = widget
                 self.gridLayout.addWidget(widget, r - offset_r, c - offset_c, 1, 1)
-        ct, rt = table.get_size()
+        rt, ct = table.get_size()
         for r in range(rt):
             for c in range(ct):
                 if not self.gridLayout.itemAtPosition(r, c):
@@ -74,27 +74,27 @@ class TableInterface(HeaderCardWidget):
                 self.gridLayout.setRowStretch(r, 1)
                 self.gridLayout.setColumnStretch(c, 1)
 
-    def setWidget(self, c, r, people: PeopleWidget):
+    def setWidget(self, r, c, people: PeopleWidget):
         """
         设置指定位置的widget
-        :param c: 列
         :param r: 行
+        :param c: 列
         :return: widget
         """
-        widget: PeopleWidgetTableBase | None = self._map.get((c, r), None)
+        widget: PeopleWidgetTableBase | None = self._map.get((r, c), None)
         if widget:
             widget.setPeople(people)
             return True
         return False
 
-    def getWidget(self, c, r):
+    def getWidget(self, r, c):
         """
         获取指定位置的widget
-        :param c: 列
         :param r: 行
+        :param c: 列
         :return: widget
         """
-        return self._map.get((c, r), None)
+        return self._map.get((r, c), None)
 
     def getAllWidgets(self):
         """
@@ -103,14 +103,14 @@ class TableInterface(HeaderCardWidget):
         """
         return self._map
 
-    def getPeople(self, c, r):
+    def getPeople(self, r, c):
         """
         获取指定位置的人员
-        :param c: 列
         :param r: 行
+        :param c: 列
         :return: People
         """
-        widget: PeopleWidgetTableBase | None = self.getWidget(c, r)
+        widget: PeopleWidgetTableBase | None = self.getWidget(r, c)
         if widget:
             return widget.getPeople().getPeople()
         return None
@@ -202,15 +202,17 @@ class EditInterface(HeaderCardWidget):
             manager.getTable().clear_all_users()
             for k, v in presets.items():
                 manager.getTable().set_user_in_pos(k, v)
-            path, _ = QFileDialog.getSaveFileName(self, "导出座位表格文件", setting.read("downloadPath"), "表格文件 (*.xlsx;;*.xls;;*.json)")
+            path, _ = QFileDialog.getSaveFileName(self, "导出座位表格文件", setting.read("downloadPath"), "Excel 文件 (*.xlsx *.xls);;JSON 文件 (*.json)")
             if not path:
                 return
             if not zb.getFileSuffix(path, True, False):
                 path += ".xlsx"
             manager.EXPORTER.export(manager.getTable(), format=zb.getFileSuffix(path, True, False), path=path)
-            logging.info(f"导出座位表格文件{path[0]}成功！")
-            infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导出座位表格文件{zb.getFileName(path[0])}成功！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM, self.window().mainPage)
-
+            logging.info(f"导出座位表格文件{path}成功！")
+            infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导出座位表格文件{zb.getFileName(path)}成功！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM, self.window().mainPage)
+            showFileButton=PushButton("打开", self, FIF.FOLDER)
+            showFileButton.clicked.connect(lambda: zb.showFile(path))
+            infoBar.addWidget(showFileButton)
         except Exception:
             logging.error(f"导出座位表格文件失败，报错信息：{traceback.format_exc()}！")
             infoBar = InfoBar(InfoBarIcon.ERROR, "失败", f"导出座位表格文件失败！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM, self.window().mainPage)
@@ -219,8 +221,8 @@ class EditInterface(HeaderCardWidget):
 
     def importSeat(self, get):
         try:
-            if not get[0]:
-                raise FileNotFoundError("未找到文件！")
+            if not get:
+                return
             if zb.getFileSuffix(get[0]) == ".xlsx":
                 manager.setTable(manager.XLSX_PARSER.parse(get[0]))
             elif zb.getFileSuffix(get[0]) == ".json":
@@ -236,8 +238,8 @@ class EditInterface(HeaderCardWidget):
 
     def importPeople(self, get):
         try:
-            if not get[0]:
-                raise FileNotFoundError("未找到文件！")
+            if not get:
+                return
             if zb.getFileSuffix(get[0]) == ".csv":
                 people = manager.PEOPLE_PARSER.parse(get[0])
             self.listInterface.addPeople(people)

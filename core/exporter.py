@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from Demos.mmapfile_demo import offset
 from openpyxl.styles import NamedStyle
@@ -82,6 +83,9 @@ class SeatTableExporter:
 
         for seat_group in table.get_seat_groups():
             for seat in seat_group.get_seats():
+                cell = ws.cell(seat.get_pos()[0] + offset_row, seat.get_pos()[1] + offset_col)
+                if cell.value == XLSX_SEAT_PLACEHOLDER:
+                    cell.value = ""
                 if seat.get_user() is not None:
                     ws.cell(seat.get_pos()[0] + offset_row, seat.get_pos()[1] + offset_col).value = seat.get_user().get_name()
 
