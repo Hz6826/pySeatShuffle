@@ -13,11 +13,15 @@ class MainPage(QWidget):
 
         self.hBoxLayout = QHBoxLayout(self)
 
+        self.shuffleInterface = ShuffleInterface(self)
         self.editInterface = EditInterface(self)
         self.tableInterface = TableInterface(self)
 
+        self.rightVBoxLayout = QVBoxLayout(self)
+        self.rightVBoxLayout.addWidget(self.shuffleInterface)
+        self.rightVBoxLayout.addWidget(self.editInterface)
         self.hBoxLayout.addWidget(self.tableInterface, 2)
-        self.hBoxLayout.addWidget(self.editInterface, 0)
+        self.hBoxLayout.addLayout(self.rightVBoxLayout, 0)
 
         self.setLayout(self.hBoxLayout)
 
@@ -42,12 +46,7 @@ class TableInterface(HeaderCardWidget):
 
         self.viewLayout.addLayout(self.gridLayout)
 
-    def setTable(self):
-
-        for r in range(self.gridLayout.rowCount()):
-            self.gridLayout.setRowStretch(r, 0)
-        for c in range(self.gridLayout.columnCount()):
-            self.gridLayout.setColumnStretch(c, 0)
+    def clearPeople(self):
 
         while self.gridLayout.count():
             item = self.gridLayout.takeAt(0)
@@ -55,6 +54,16 @@ class TableInterface(HeaderCardWidget):
             if widget is not None:
                 widget.deleteLater()
         self.parent().editInterface.listInterface.addPeople(list(manager.getPeople().keys()))
+
+    def removeTable(self):
+        for r in range(self.gridLayout.rowCount()):
+            self.gridLayout.setRowStretch(r, 0)
+        for c in range(self.gridLayout.columnCount()):
+            self.gridLayout.setColumnStretch(c, 0)
+        self.clearPeople()
+
+    def setTable(self):
+        self.removeTable()
 
         self._map = {}
 
@@ -123,7 +132,47 @@ class TableInterface(HeaderCardWidget):
         return {k: v.getPeople().getPeople() for k, v in self._map.items() if v.getPeople() is not None and v.getPeople().getPeople() is not None}
 
 
+class ShuffleInterface(HeaderCardWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setMinimumWidth(100)
+        self.setMaximumWidth(250)
+        self.setTitle("操作区")
+
+        self.vBoxLayout2 = QVBoxLayout(self)
+        self.vBoxLayout2.setContentsMargins(0, 0, 0, 0)
+        self.viewLayout.addLayout(self.vBoxLayout2)
+
+        self.hBoxLayout = QHBoxLayout(self)
+        self.hBoxLayout.setContentsMargins(0, 0, 0, 0)
+
+        self.buttonShuffle = PushButton("生成", self, FIF.ADD)
+        self.buttonShuffle.clicked.connect(self.handleShuffle)
+
+        self.clearButton = ToolButton(FIF.DELETE, self)
+        zbw.setToolTip(self.clearButton, "清空预览区所有人员")
+        self.clearButton.clicked.connect(self.handleClearButtonClicked)
+
+        self.hBoxLayout.addWidget(self.buttonShuffle, 2)
+        self.hBoxLayout.addWidget(self.clearButton, 0, Qt.AlignCenter)
+        self.vBoxLayout2.addLayout(self.hBoxLayout)
+
+    def handleShuffle(self):
+        if not manager.getTable():
+            return
+        presets = self.window().mainPage.tableInterface.getAllPeople()
+        manager.getTable().clear_all_users()
+        for k, v in presets.items():
+            manager.getTable().set_user_in_pos(k, v)
+
+        # TODO 此处写排座代码和显示代码
+
+    def handleClearButtonClicked(self):
+        pass
+
+
 class EditInterface(HeaderCardWidget):
+
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.setMinimumWidth(100)
@@ -150,9 +199,6 @@ class EditInterface(HeaderCardWidget):
         self.importFileChooser2.setFixedHeight(100)
         self.importFileChooser2.fileChoosedSignal.connect(self.importPeople)
 
-        self.generateButton = PushButton("生成", self, FIF.ADD)
-        self.generateButton.clicked.connect(self.generate)
-
         self.exportButton = PushButton("导出", self, FIF.UP)
         self.exportButton.clicked.connect(self.export)
 
@@ -160,7 +206,6 @@ class EditInterface(HeaderCardWidget):
         self.stackedWidget = QStackedWidget(self)
 
         self.vBoxLayout2.addWidget(self.importFileChooser1, 0, Qt.AlignCenter)
-        self.vBoxLayout2.addWidget(self.generateButton)
         self.vBoxLayout2.addWidget(self.exportButton)
         self.vBoxLayout2.addWidget(self.pivot)
         self.vBoxLayout2.addWidget(self.stackedWidget)
@@ -184,16 +229,6 @@ class EditInterface(HeaderCardWidget):
             self.importFileChooser1.setDefaultPath(setting.read("downloadPath"))
             self.importFileChooser2.setDefaultPath(setting.read("downloadPath"))
 
-    def generate(self):
-        if not manager.getTable():
-            return
-        presets = self.window().mainPage.tableInterface.getAllPeople()
-        manager.getTable().clear_all_users()
-        for k, v in presets.items():
-            manager.getTable().set_user_in_pos(k, v)
-
-        # TODO 此处写排座代码和显示代码
-
     def export(self):
         try:
             if not manager.getTable():
@@ -210,7 +245,7 @@ class EditInterface(HeaderCardWidget):
             manager.EXPORTER.export(manager.getTable(), format=zb.getFileSuffix(path, True, False), path=path)
             logging.info(f"导出座位表格文件{path}成功！")
             infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导出座位表格文件{zb.getFileName(path)}成功！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM, self.window().mainPage)
-            showFileButton=PushButton("打开", self, FIF.FOLDER)
+            showFileButton = PushButton("打开", self, FIF.FOLDER)
             showFileButton.clicked.connect(lambda: zb.showFile(path))
             infoBar.addWidget(showFileButton)
         except Exception:
