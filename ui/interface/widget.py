@@ -1,3 +1,4 @@
+import core
 from ..program import *
 
 
@@ -170,9 +171,14 @@ class TableManager:
     def __init__(self):
         self._table: core.SeatTable | None = None
         self._people: dict = {}
+        self._instance: core.Instance = (
+            core.Instance("default", [], self._table, core.parse_ruleset(".test/config/ruleset/default.json"))
+        )
+        self._shuffler = core.Shuffler(self._instance)
 
     def setTable(self, table):
         self._table = table
+        self._instance.set_seat_table(table)
 
     def getTable(self):
         return self._table
@@ -214,6 +220,9 @@ class TableManager:
                 v.parent().removePeople()
             v.deleteLater()
         self._people = {}
+
+    def getShuffler(self):
+        return self._shuffler
 
 
 manager = TableManager()

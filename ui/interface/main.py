@@ -165,10 +165,38 @@ class ShuffleInterface(HeaderCardWidget):
         for k, v in presets.items():
             manager.getTable().set_user_in_pos(k, v)
 
-        # TODO 此处写排座代码和显示代码
+        shuffler = manager.getShuffler()
 
     def handleClearButtonClicked(self):
-        pass
+        self.clearButton.setEnabled(False)
+
+        infobar = InfoBar(
+            InfoBarIcon.WARNING,
+            "清空预览区所有人员",
+            "确定清除已排好的座位？（该操作无法撤销！）",
+            isClosable=False,
+            duration=-1,
+            parent=self.parent()
+        )
+
+        def confirm():
+            manager.clearPeople()
+            self.clearButton.setEnabled(True)
+            infobar.close()
+            InfoBar.info("成功！", "已清空预览区所有人员！", parent=self.parent())
+
+        def cancel():
+            self.clearButton.setEnabled(True)
+            infobar.close()
+
+        confirm_btn = PushButton(text="确定")
+        confirm_btn.clicked.connect(confirm)
+        infobar.addWidget(confirm_btn)
+
+        cancel_btn = PushButton(text="取消")
+        cancel_btn.clicked.connect(cancel)
+        infobar.addWidget(cancel_btn)
+        infobar.show()
 
 
 class EditInterface(HeaderCardWidget):
