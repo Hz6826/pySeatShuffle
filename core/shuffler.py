@@ -7,7 +7,7 @@ import random
 
 
 class Shuffler:
-    def __init__(self, ins: Instance):
+    def __init__(self, ins):
         self.instance = ins
 
     def __iter__(self):

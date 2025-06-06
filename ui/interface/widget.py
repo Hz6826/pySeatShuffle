@@ -1,4 +1,3 @@
-import core
 from ..program import *
 
 
@@ -162,67 +161,169 @@ class PeopleWidgetBase(CardWidget):
         self.removePeople()
 
 
-class TableManager:
+class Manager(QWidget):
     PEOPLE_PARSER = core.PeopleParser()
     XLSX_PARSER = core.SeatTableParserXlsx()
     JSON_PARSER = core.SeatTableParserJson()
     EXPORTER = core.SeatTableExporter()
 
-    def __init__(self):
-        self._table: core.SeatTable | None = None
-        self._people: dict = {}
-        self._instance: core.Instance = (
-            core.Instance("default", [], self._table, core.parse_ruleset(".test/config/ruleset/default.json"))
-        )
-        self._shuffler = core.Shuffler(self._instance)
+    table: core.SeatTable = None
+    people: dict = {}  # {name:{"people":core.Person, "widget": PeopleWidget}}
+    table_widget: dict = {}
 
-    def setTable(self, table):
-        self._table = table
-        self._instance.set_seat_table(table)
+    def __init__(self):
+        super().__init__()
+
+    @property
+    def editInterface(self):
+        return self.parent().mainPage.editInterface
+
+    @property
+    def shuffleInterface(self):
+        return self.parent().mainPage.shuffleInterface
+
+    @property
+    def tableInterface(self):
+        return self.parent().mainPage.tableInterface
+
+    @property
+    def listInterface(self):
+        return self.parent().mainPage.editInterface.listInterface
+
+    @property
+    def rulesInterface(self):
+        return self.parent().mainPage.editInterface.rulesInterface
 
     def getTable(self):
-        return self._table
+        return self.table
 
-    def setPeople(self, widget: list | dict):
-        if isinstance(widget, list):
-            for i in widget:
-                self._people[i.getPeople()] = i
-        elif isinstance(widget, dict):
-            for k, v in widget:
-                self._people[k] = v
+    def setTable(self, table):
+        self.table = table
 
-    def getPeople(self):
-        return self._people
+    def getPeople(self, name: str | core.Person | PeopleWidget):
+        if isinstance(name, str):
+            return self.people.get(name, {}).get("people", None)
+        elif isinstance(name, core.Person):
+            return name
+        elif isinstance(name, PeopleWidget):
+            return name.getPeople()
+        return None
 
-    def getPeopleWidget(self, name):
-        for k, v in self._people.items():
-            if k.get_name() == name:
-                return v
+    def getPeopleWidget(self, name: str | core.Person | PeopleWidget):
+        if isinstance(name, str):
+            return self.people.get(name, {}).get("widget", None)
+        elif isinstance(name, core.Person):
+            return self.people.get(name.get_name(), {}).get("widget", None)
+        elif isinstance(name, PeopleWidget):
+            return name
+        return None
 
-    def hasPeople(self, name):
-        return name in [i.get_name() for i in self._people.keys()]
+    def getPeoples(self):
+        return [p["people"] for p in self.people.values()]
 
-    def removePeople(self, name):
-        for k in list(self._people.keys()):
-            if k.get_name() == name:
-                widget = self._people.pop(k)
-                if isinstance(widget.parent(), PeopleWidgetBase):
-                    widget.parent().removePeople()
-                elif isinstance(widget.parent(), PeopleWidgetTableBase):
-                    widget.parent().removePeople()
-                widget.deleteLater()
+    def getPeopleWidgets(self):
+        return [p["widget"] for p in self.people.values()]
+
+    def setPeople(self, people: core.Person | PeopleWidget):
+        if isinstance(people, core.Person):
+            people_widget = PeopleWidget()
+            people_widget.setPeople(people)
+            name = people.get_name()
+            if name in self.people.keys():
+                existing_widget = self.people[name]["widget"]
+                if isinstance(existing_widget.parent(), PeopleWidgetBase):
+                    existing_widget.parent().removePeople()
+                elif isinstance(existing_widget.parent(), PeopleWidgetTableBase):
+                    existing_widget.parent().removePeople()
+                existing_widget.deleteLater()
+            self.people[name] = {"people": people, "widget": people_widget}
+        elif isinstance(people, PeopleWidget):
+            name = people.getPeople().get_name()
+            if name in self.people.keys():
+                existing_widget = self.people[name]["widget"]
+                if isinstance(existing_widget.parent(), PeopleWidgetBase):
+                    existing_widget.parent().removePeople()
+                elif isinstance(existing_widget.parent(), PeopleWidgetTableBase):
+                    existing_widget.parent().removePeople()
+                existing_widget.deleteLater()
+            self.people[name] = {"people": people.getPeople(), "widget": people}
+
+    def setPeoples(self, peoples: list[core.Person | PeopleWidget]):
+        for people in peoples:
+            self.setPeople(people)
+
+    def hasPeople(self, name: str | core.Person | PeopleWidget):
+        if isinstance(name, str):
+            return name in self.people.keys()
+        elif isinstance(name, core.Person):
+            return name.get_name() in self.people.keys()
+        elif isinstance(name, PeopleWidget):
+            return name.getPeople().get_name() in self.people.keys()
+        return False
+
+    def removePeople(self, name: str | core.Person | PeopleWidget):
+        if isinstance(name, str):
+            if name in self.people.keys():
+                name = name
+        elif isinstance(name, core.Person):
+            if name.get_name() in self.people.keys():
+                name = name.get_name()
+        elif isinstance(name, PeopleWidget):
+            if name.getPeople().get_name() in self.people.keys():
+                name = name.getPeople().get_name()
+        else:
+            return
+        v = self.people.pop(name, None)
+        if isinstance(v, dict):
+            widget = v["widget"]
+            if isinstance(widget.parent(), PeopleWidgetBase):
+                widget.parent().removePeople()
+            elif isinstance(widget.parent(), PeopleWidgetTableBase):
+                widget.parent().removePeople()
+            widget.deleteLater()
 
     def clearPeople(self):
-        for k, v in self._people.items():
-            if isinstance(v.parent(), PeopleWidgetBase):
-                v.parent().removePeople()
-            elif isinstance(v.parent(), PeopleWidgetTableBase):
-                v.parent().removePeople()
-            v.deleteLater()
-        self._people = {}
+        for widget in self.getPeopleWidgets():
+            if isinstance(widget.parent(), PeopleWidgetBase):
+                widget.parent().removePeople()
+            elif isinstance(widget.parent(), PeopleWidgetTableBase):
+                widget.parent().removePeople()
+            widget.deleteLater()
+        self.people = {}
 
-    def getShuffler(self):
-        return self._shuffler
+    def setPeopleList(self):
+        self.listInterface.cardGroup.clearCard()
+
+        for k, v in self.people.items():
+            people_widget: PeopleWidget = v["widget"]
+            people_widget.setParent(self.listInterface)
+            widget = PeopleWidgetBase(self.listInterface)
+            widget.setPeople(people_widget)
+            self.listInterface.cardGroup.addCard(widget, k)
+            widget.layout()
+
+    def getTableWidgets(self):
+        return self.table_widget
+
+    def getTableWidget(self, pos: (int, int)):
+        return self.table_widget.get(pos, None)
+
+    def getPeopleAtPos(self, pos: (int, int)):
+        """
+        获取指定位置的人员
+        :return: People
+        """
+        widget: PeopleWidgetTableBase | None = self.getTableWidget(pos)
+        if widget:
+            return widget.getPeople().getPeople()
+        return None
+
+    def getAllPeopleInTable(self):
+        """
+        获取所有人员
+        :return: dict
+        """
+        return {k: v.getPeople().getPeople() for k, v in manager.table_widget.items() if v.getPeople() is not None and v.getPeople().getPeople() is not None}
 
 
-manager = TableManager()
+manager = Manager()

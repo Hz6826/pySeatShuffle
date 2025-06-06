@@ -10,6 +10,7 @@ class Window(zbw.Window):
     def __init__(self):
         super().__init__()
 
+        manager.setParent(self)
         # 托盘组件
 
         self.mainPage = MainPage(self)

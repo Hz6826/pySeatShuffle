@@ -30,8 +30,6 @@ class TableInterface(HeaderCardWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
 
-        self._map = {}
-
         self.listWidget = ListWidget(self)
         self.listWidget.setContentsMargins(0, 0, 0, 0)
 
@@ -47,13 +45,12 @@ class TableInterface(HeaderCardWidget):
         self.viewLayout.addLayout(self.gridLayout)
 
     def clearPeople(self):
-
         while self.gridLayout.count():
             item = self.gridLayout.takeAt(0)
             widget = item.widget()
             if widget is not None:
                 widget.deleteLater()
-        self.parent().editInterface.listInterface.addPeople(list(manager.getPeople().keys()))
+        manager.setPeopleList()
 
     def removeTable(self):
         for r in range(self.gridLayout.rowCount()):
@@ -65,7 +62,7 @@ class TableInterface(HeaderCardWidget):
     def setTable(self):
         self.removeTable()
 
-        self._map = {}
+        manager.table_widget = {}
 
         table = manager.getTable()
         offset_r, offset_c = table.get_offset()
@@ -73,7 +70,7 @@ class TableInterface(HeaderCardWidget):
             for seat in group.get_seats():
                 r, c = seat.get_pos()
                 widget = PeopleWidgetTableBase(self, r, c)
-                self._map[(r, c)] = widget
+                manager.table_widget[(r, c)] = widget
                 self.gridLayout.addWidget(widget, r - offset_r, c - offset_c, 1, 1)
         rt, ct = table.get_size()
         for r in range(rt):
@@ -90,46 +87,11 @@ class TableInterface(HeaderCardWidget):
         :param c: 列
         :return: widget
         """
-        widget: PeopleWidgetTableBase | None = self._map.get((r, c), None)
+        widget: PeopleWidgetTableBase | None = manager.table_widget.get((r, c), None)
         if widget:
             widget.setPeople(people)
             return True
         return False
-
-    def getWidget(self, r, c):
-        """
-        获取指定位置的widget
-        :param r: 行
-        :param c: 列
-        :return: widget
-        """
-        return self._map.get((r, c), None)
-
-    def getAllWidgets(self):
-        """
-        获取所有widget
-        :return: dict
-        """
-        return self._map
-
-    def getPeople(self, r, c):
-        """
-        获取指定位置的人员
-        :param r: 行
-        :param c: 列
-        :return: People
-        """
-        widget: PeopleWidgetTableBase | None = self.getWidget(r, c)
-        if widget:
-            return widget.getPeople().getPeople()
-        return None
-
-    def getAllPeople(self):
-        """
-        获取所有人员
-        :return: dict
-        """
-        return {k: v.getPeople().getPeople() for k, v in self._map.items() if v.getPeople() is not None and v.getPeople().getPeople() is not None}
 
 
 class ShuffleInterface(HeaderCardWidget):
@@ -160,7 +122,7 @@ class ShuffleInterface(HeaderCardWidget):
     def handleShuffle(self):
         if not manager.getTable():
             return
-        presets = self.window().mainPage.tableInterface.getAllPeople()
+        presets = manager.tableInterface.getAllPeople()
         manager.getTable().clear_all_users()
         for k, v in presets.items():
             manager.getTable().set_user_in_pos(k, v)
@@ -261,7 +223,7 @@ class EditInterface(HeaderCardWidget):
         try:
             if not manager.getTable():
                 return
-            presets = self.window().mainPage.tableInterface.getAllPeople()
+            presets = manager.tableInterface.getAllPeople()
             manager.getTable().clear_all_users()
             for k, v in presets.items():
                 manager.getTable().set_user_in_pos(k, v)
@@ -290,7 +252,7 @@ class EditInterface(HeaderCardWidget):
                 manager.setTable(manager.XLSX_PARSER.parse(get[0]))
             elif zb.getFileSuffix(get[0]) == ".json":
                 manager.setTable(manager.JSON_PARSER.parse(get[0]))
-            self.window().mainPage.tableInterface.setTable()
+            manager.tableInterface.setTable()
             setting.save("downloadPath", zb.getFileDir(get[0]))
             logging.info(f"导入座位表格文件{get[0]}成功！")
             infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导入座位表格文件{zb.getFileName(get[0])}成功！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM, self.window().mainPage)
@@ -303,9 +265,9 @@ class EditInterface(HeaderCardWidget):
         try:
             if not get:
                 return
-            if zb.getFileSuffix(get[0]) == ".csv":
-                people = manager.PEOPLE_PARSER.parse(get[0])
-            self.listInterface.addPeople(people)
+            people = manager.PEOPLE_PARSER.parse(get[0])
+            manager.setPeoples(people)
+            manager.setPeopleList()
             setting.save("downloadPath", zb.getFileDir(get[0]))
             logging.info(f"导入名单表格文件{get[0]}成功！")
             infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导入名单表格文件{zb.getFileName(get[0])}成功！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM, self.window().mainPage)
@@ -336,16 +298,3 @@ class ListInterface(zbw.BasicTab):
         self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
         self.vBoxLayout.setSpacing(0)
         self.vBoxLayout.addWidget(self.cardGroup)
-
-    def addPeople(self, people: list):
-        manager.clearPeople()
-        result = []
-        for i in people:
-            people_widget = PeopleWidget(self)
-            people_widget.setPeople(i)
-            widget = PeopleWidgetBase(self)
-            widget.setPeople(people_widget)
-            self.cardGroup.addCard(widget, i.get_name())
-            result.append(people_widget)
-            widget.layout()
-        manager.setPeople(result)
