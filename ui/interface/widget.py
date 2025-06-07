@@ -5,7 +5,7 @@ class PeopleWidget(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setMinimumSize(30, 20)
-        self._people = None
+        self.people = None
 
         self.vBoxLayout = QVBoxLayout(self)
         self.vBoxLayout.setAlignment(Qt.AlignCenter)
@@ -36,8 +36,8 @@ class PeopleWidget(QFrame):
 
         drag = QDrag(self)
         mime_data = QMimeData()
-        mime_data.setText(str(self._people))
-        mime_data.setData("PeopleWidget", QByteArray(self._people.get_name().encode("utf-8")))
+        mime_data.setText(str(self.people))
+        mime_data.setData("PeopleWidget", QByteArray(self.people.get_name().encode("utf-8")))
         drag.setMimeData(mime_data)
 
         drag.setPixmap(drag_pixmap)
@@ -47,19 +47,25 @@ class PeopleWidget(QFrame):
         drag.exec_(Qt.MoveAction)
 
     def getPeople(self):
-        return self._people
+        return self.people
 
     def setPeople(self, people: core.Person):
-        self._people = people
+        self.people = people
         self.label.setText(self.getPeople().get_name())
+
+    def setParent(self, a0):
+        old = self.parent()
+        if isinstance(old, PeopleWidgetTableBase) or isinstance(old,PeopleWidgetBase):
+            self.parent().removePeople()
+        super().setParent(a0)
 
 
 class PeopleWidgetTableBase(CardWidget):
     def __init__(self, parent=None, r: int = 0, c: int = 0):
         super().__init__(parent)
-        self._people = None
+        self.people = None
 
-        self._pos = (r, c)
+        self.pos = (r, c)
 
         self.setAcceptDrops(True)
 
@@ -70,6 +76,12 @@ class PeopleWidgetTableBase(CardWidget):
 
         self.setContentsMargins(0, 0, 0, 0)
         self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
+
+        self.removeButton = ToolButton(FIF.CLOSE, self)
+        self.removeButton.clicked.connect(self.removeButtonClicked)
+        self.removeButton.move(4, 4)
+        self.removeButton.setFixedSize(24, 24)
+        self.removeButton.hide()
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasText() and event.mimeData().hasFormat("PeopleWidget"):
@@ -95,10 +107,10 @@ class PeopleWidgetTableBase(CardWidget):
             event.ignore()
 
     def getPeople(self):
-        return self._people
+        return self.people
 
     def setPeople(self, people: PeopleWidget):
-        old_people = self._people
+        old_people = self.people
         old_parent = people.parent()
         if old_people:
             if isinstance(old_parent, PeopleWidgetTableBase):
@@ -113,13 +125,14 @@ class PeopleWidgetTableBase(CardWidget):
             elif isinstance(old_parent, PeopleWidgetBase):
                 old_parent.removePeople()
         self.removePeople()
-        self._people = people
+        self.people = people
         self.vBoxLayout.addWidget(people)
-        zbw.setToolTip(self, "\n".join([self._people._people.get_name()] + [f"{k}：{v}" for k, v in self._people._people.get_properties().items()]))
+        self.people.stackUnder(self.removeButton)
+        zbw.setToolTip(self, "\n".join([self.people.people.get_name()] + [f"{k}：{v}" for k, v in self.people.people.get_properties().items()]))
 
     def removePeople(self):
-        self.vBoxLayout.removeWidget(self._people)
-        self._people, people = None, self._people
+        self.vBoxLayout.removeWidget(self.people)
+        self.people, people = None, self.people
         return people
 
     def deletePeople(self):
@@ -128,11 +141,23 @@ class PeopleWidgetTableBase(CardWidget):
     def clearPeople(self):
         self.removePeople()
 
+    def enterEvent(self, event):
+        if self.people:
+            self.removeButton.show()
+
+    def leaveEvent(self, event):
+        self.removeButton.hide()
+
+    def removeButtonClicked(self):
+        if self.people:
+            manager.removeTablePeople(self.pos)
+            self.removeButton.hide()
+
 
 class PeopleWidgetBase(CardWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._people = None
+        self.people = None
 
         self.setMaximumHeight(40)
 
@@ -143,15 +168,15 @@ class PeopleWidgetBase(CardWidget):
         self.setLayout(self.vBoxLayout)
 
     def getPeople(self):
-        return self._people
+        return self.people
 
     def setPeople(self, people: PeopleWidget):
-        self._people = people
+        self.people = people
         self.vBoxLayout.addWidget(people)
-        zbw.setToolTip(self, "\n".join([self._people._people.get_name()] + [f"{k}：{v}" for k, v in self._people._people.get_properties().items()]))
+        zbw.setToolTip(self, "\n".join([self.people.people.get_name()] + [f"{k}：{v}" for k, v in self.people.people.get_properties().items()]))
 
     def removePeople(self):
-        self.parent().removeCard(self._people._people.get_name())
+        self.parent().removeCard(self.people.people.get_name())
         self.deleteLater()
 
     def deletePeople(self):
@@ -207,6 +232,25 @@ class Manager(QWidget):
         :param table:
         """
         self.table = table
+        self.removeTable()
+
+        self.table_widget = {}
+
+        table = self.getTable()
+        offset_r, offset_c = table.get_offset()
+        for group in table.get_seat_groups():
+            for seat in group.get_seats():
+                r, c = seat.get_pos()
+                widget = PeopleWidgetTableBase(self, r, c)
+                self.table_widget[(r, c)] = widget
+                self.tableInterface.gridLayout.addWidget(widget, r - offset_r, c - offset_c, 1, 1)
+        rt, ct = table.get_size()
+        for r in range(rt):
+            for c in range(ct):
+                if not self.tableInterface.gridLayout.itemAtPosition(r, c):
+                    self.tableInterface.gridLayout.addWidget(QWidget(self), r, c, 1, 1)
+                self.tableInterface.gridLayout.setRowStretch(r, 1)
+                self.tableInterface.gridLayout.setColumnStretch(c, 1)
 
     def getPeople(self, name: str | core.Person | PeopleWidget):
         """
@@ -338,19 +382,22 @@ class Manager(QWidget):
             widget.deleteLater()
         self.people = {}
 
-    def setPeopleList(self):
+    def setListPeoples(self, move: bool = True):
         """
-        根据当前的people列表重新创建列表，会将所有people从表格移动回列表
+        根据当前的people列表重新创建列表
+        :param move: 是否从表格移动人到列表
         """
         self.listInterface.cardGroup.clearCard()
 
         for k, v in self.people.items():
             people_widget: PeopleWidget = v["widget"]
-            people_widget.setParent(self.listInterface)
-            widget = PeopleWidgetBase(self.listInterface)
-            widget.setPeople(people_widget)
-            self.listInterface.cardGroup.addCard(widget, k)
-            widget.layout()
+            parent = people_widget.parent()
+            if move or not isinstance(parent, PeopleWidgetTableBase):
+                people_widget.setParent(self.listInterface)
+                widget = PeopleWidgetBase(self.listInterface)
+                widget.setPeople(people_widget)
+                self.listInterface.cardGroup.addCard(widget, k)
+                widget.layout()
 
     def getTableWidgets(self):
         """
@@ -377,12 +424,63 @@ class Manager(QWidget):
             return widget.getPeople().getPeople()
         return None
 
-    def getAllTablePeople(self):
+    def getTablePeoples(self):
         """
         获取所有人员
         :return: dict
         """
-        return {k: v.getPeople().getPeople() for k, v in manager.table_widget.items() if v.getPeople() is not None and v.getPeople().getPeople() is not None}
+        return {k: v.getPeople().getPeople() for k, v in self.table_widget.items() if v.getPeople() is not None and v.getPeople().getPeople() is not None}
+
+    def setTablePeople(self, pos: (int, int), name: str | core.Person | PeopleWidget):
+        """
+        设置表格指定位置的人
+        :param r: 行
+        :param c: 列
+        :return: widget
+        """
+        if isinstance(name, str):
+            if name in self.table_widget.keys():
+                name = self.people[name]["widget"]
+            elif isinstance(name, core.Person):
+                name = self.people[name.get_name()]["widget"]
+        widget: PeopleWidgetTableBase | None = self.table_widget.get(pos, None)
+        if widget:
+            widget.setPeople(name)
+            return True
+        return False
+
+    def removeTablePeople(self, pos: (int, int)):
+        """
+        移除表格指定位置的人并放回列表
+        :param pos:
+        """
+        widget = self.table_widget.get(pos, None)
+        if widget:
+            people = widget.removePeople()
+            people.setParent(None)
+            self.setListPeoples(False)
+
+    def clearTablePeoples(self):
+        """
+        清空表格中的所有人，并放回列表
+        """
+        self.setListPeoples()
+
+    def removeTable(self):
+        """
+        移除表格
+        """
+        while self.tableInterface.gridLayout.count():
+            item = self.tableInterface.gridLayout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+        self.setListPeoples()
+        for r in range(self.tableInterface.gridLayout.rowCount()):
+            self.tableInterface.gridLayout.setRowStretch(r, 0)
+        for c in range(self.tableInterface.gridLayout.columnCount()):
+            self.tableInterface.gridLayout.setColumnStretch(c, 0)
+        self.table_widget = {}
 
 
 manager = Manager()

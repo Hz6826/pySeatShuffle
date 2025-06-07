@@ -44,55 +44,6 @@ class TableInterface(HeaderCardWidget):
 
         self.viewLayout.addLayout(self.gridLayout)
 
-    def clearPeople(self):
-        while self.gridLayout.count():
-            item = self.gridLayout.takeAt(0)
-            widget = item.widget()
-            if widget is not None:
-                widget.deleteLater()
-        manager.setPeopleList()
-
-    def removeTable(self):
-        for r in range(self.gridLayout.rowCount()):
-            self.gridLayout.setRowStretch(r, 0)
-        for c in range(self.gridLayout.columnCount()):
-            self.gridLayout.setColumnStretch(c, 0)
-        self.clearPeople()
-
-    def setTable(self):
-        self.removeTable()
-
-        manager.table_widget = {}
-
-        table = manager.getTable()
-        offset_r, offset_c = table.get_offset()
-        for group in table.get_seat_groups():
-            for seat in group.get_seats():
-                r, c = seat.get_pos()
-                widget = PeopleWidgetTableBase(self, r, c)
-                manager.table_widget[(r, c)] = widget
-                self.gridLayout.addWidget(widget, r - offset_r, c - offset_c, 1, 1)
-        rt, ct = table.get_size()
-        for r in range(rt):
-            for c in range(ct):
-                if not self.gridLayout.itemAtPosition(r, c):
-                    self.gridLayout.addWidget(QWidget(self), r, c, 1, 1)
-                self.gridLayout.setRowStretch(r, 1)
-                self.gridLayout.setColumnStretch(c, 1)
-
-    def setWidget(self, r, c, people: PeopleWidget):
-        """
-        设置指定位置的widget
-        :param r: 行
-        :param c: 列
-        :return: widget
-        """
-        widget: PeopleWidgetTableBase | None = manager.table_widget.get((r, c), None)
-        if widget:
-            widget.setPeople(people)
-            return True
-        return False
-
 
 class ShuffleInterface(HeaderCardWidget):
     def __init__(self, parent=None):
@@ -122,7 +73,7 @@ class ShuffleInterface(HeaderCardWidget):
     def handleShuffle(self):
         if not manager.getTable():
             return
-        presets = manager.tableInterface.getAllPeople()
+        presets = manager.getTablePeoples()
         manager.getTable().clear_all_users()
         for k, v in presets.items():
             manager.getTable().set_user_in_pos(k, v)
@@ -138,14 +89,14 @@ class ShuffleInterface(HeaderCardWidget):
             "确定清除已排好的座位？（该操作无法撤销！）",
             isClosable=False,
             duration=-1,
-            parent=self.parent()
+            parent=self.window().mainPage
         )
 
         def confirm():
-            manager.clearPeople()
+            manager.clearTablePeoples()
             self.clearButton.setEnabled(True)
             infobar.close()
-            InfoBar.info("成功！", "已清空预览区所有人员！", parent=self.parent())
+            InfoBar.info("成功！", "已清空预览区所有人员！", parent=self.window().mainPage)
 
         def cancel():
             self.clearButton.setEnabled(True)
@@ -223,7 +174,7 @@ class EditInterface(HeaderCardWidget):
         try:
             if not manager.getTable():
                 return
-            presets = manager.tableInterface.getAllPeople()
+            presets = manager.getTablePeoples()
             manager.getTable().clear_all_users()
             for k, v in presets.items():
                 manager.getTable().set_user_in_pos(k, v)
@@ -252,7 +203,6 @@ class EditInterface(HeaderCardWidget):
                 manager.setTable(manager.XLSX_PARSER.parse(get[0]))
             elif zb.getFileSuffix(get[0]) == ".json":
                 manager.setTable(manager.JSON_PARSER.parse(get[0]))
-            manager.tableInterface.setTable()
             setting.save("downloadPath", zb.getFileDir(get[0]))
             logging.info(f"导入座位表格文件{get[0]}成功！")
             infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导入座位表格文件{zb.getFileName(get[0])}成功！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM, self.window().mainPage)
@@ -267,7 +217,7 @@ class EditInterface(HeaderCardWidget):
                 return
             people = manager.PEOPLE_PARSER.parse(get[0])
             manager.setPeoples(people)
-            manager.setPeopleList()
+            manager.setListPeoples()
             setting.save("downloadPath", zb.getFileDir(get[0]))
             logging.info(f"导入名单表格文件{get[0]}成功！")
             infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导入名单表格文件{zb.getFileName(get[0])}成功！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM, self.window().mainPage)
