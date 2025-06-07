@@ -78,7 +78,7 @@ class ShuffleInterface(HeaderCardWidget):
         for k, v in presets.items():
             manager.getTable().set_user_in_pos(k, v)
 
-        shuffler = manager.getShuffler()
+        # TODO 排座
 
     def handleClearButtonClicked(self):
         self.clearButton.setEnabled(False)
