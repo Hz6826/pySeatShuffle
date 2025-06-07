@@ -11,6 +11,7 @@ class Window(zbw.Window):
         super().__init__()
 
         manager.setParent(self)
+        manager.hide()
         # 托盘组件
 
         self.mainPage = MainPage(self)
