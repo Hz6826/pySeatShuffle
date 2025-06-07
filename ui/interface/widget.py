@@ -195,12 +195,25 @@ class Manager(QWidget):
         return self.parent().mainPage.editInterface.rulesInterface
 
     def getTable(self):
+        """
+        获取表格
+        :return:
+        """
         return self.table
 
     def setTable(self, table):
+        """
+        设置表格
+        :param table:
+        """
         self.table = table
 
     def getPeople(self, name: str | core.Person | PeopleWidget):
+        """
+        获取指定person
+        :param name:
+        :return:
+        """
         if isinstance(name, str):
             return self.people.get(name, {}).get("people", None)
         elif isinstance(name, core.Person):
@@ -210,6 +223,11 @@ class Manager(QWidget):
         return None
 
     def getPeopleWidget(self, name: str | core.Person | PeopleWidget):
+        """
+        获取指定PeopleWidget
+        :param name:
+        :return:
+        """
         if isinstance(name, str):
             return self.people.get(name, {}).get("widget", None)
         elif isinstance(name, core.Person):
@@ -219,12 +237,24 @@ class Manager(QWidget):
         return None
 
     def getPeoples(self):
+        """
+        获取所有core.Person
+        :return:
+        """
         return [p["people"] for p in self.people.values()]
 
     def getPeopleWidgets(self):
+        """
+        获取所有PeopleWidget
+        :return:
+        """
         return [p["widget"] for p in self.people.values()]
 
     def setPeople(self, people: core.Person | PeopleWidget):
+        """
+        设置people
+        :param people:
+        """
         if isinstance(people, core.Person):
             people_widget = PeopleWidget()
             people_widget.setPeople(people)
@@ -249,10 +279,19 @@ class Manager(QWidget):
             self.people[name] = {"people": people.getPeople(), "widget": people}
 
     def setPeoples(self, peoples: list[core.Person | PeopleWidget]):
+        """
+        设置多个people
+        :param peoples:
+        """
         for people in peoples:
             self.setPeople(people)
 
     def hasPeople(self, name: str | core.Person | PeopleWidget):
+        """
+        是否有指定people
+        :param name:
+        :return:
+        """
         if isinstance(name, str):
             return name in self.people.keys()
         elif isinstance(name, core.Person):
@@ -262,6 +301,11 @@ class Manager(QWidget):
         return False
 
     def removePeople(self, name: str | core.Person | PeopleWidget):
+        """
+        移除指定people，并从ui上移除
+        :param name: people
+        :return:
+        """
         if isinstance(name, str):
             if name in self.people.keys():
                 name = name
@@ -283,6 +327,9 @@ class Manager(QWidget):
             widget.deleteLater()
 
     def clearPeople(self):
+        """
+        清空people列表
+        """
         for widget in self.getPeopleWidgets():
             if isinstance(widget.parent(), PeopleWidgetBase):
                 widget.parent().removePeople()
@@ -292,6 +339,9 @@ class Manager(QWidget):
         self.people = {}
 
     def setPeopleList(self):
+        """
+        根据当前的people列表重新创建列表，会将所有people从表格移动回列表
+        """
         self.listInterface.cardGroup.clearCard()
 
         for k, v in self.people.items():
@@ -303,12 +353,21 @@ class Manager(QWidget):
             widget.layout()
 
     def getTableWidgets(self):
+        """
+        获得所有TableWidget
+        :return:
+        """
         return self.table_widget
 
     def getTableWidget(self, pos: (int, int)):
+        """
+        获取指定位置的TableWidget
+        :param pos: 坐标
+        :return:
+        """
         return self.table_widget.get(pos, None)
 
-    def getPeopleAtPos(self, pos: (int, int)):
+    def getTablePeople(self, pos: (int, int)):
         """
         获取指定位置的人员
         :return: People
@@ -318,7 +377,7 @@ class Manager(QWidget):
             return widget.getPeople().getPeople()
         return None
 
-    def getAllPeopleInTable(self):
+    def getAllTablePeople(self):
         """
         获取所有人员
         :return: dict
