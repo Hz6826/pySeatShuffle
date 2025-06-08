@@ -7,33 +7,35 @@ import random
 
 
 class Shuffler:
-    def __init__(self, manager):
-        self.manager = manager
+    def __init__(self, people: list[Person], seat_table: SeatTable, ruleset: Ruleset):
+        self.people = people
+        self.seat_table = seat_table
+        self.ruleset = ruleset
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        if len(self.manager.people) == 0 or self.manager.seat_table.count_available_seats() == 0:
+        if len(self.people) == 0 or self.seat_table.count_available_seats() == 0:
             raise StopIteration
         else:
             return self.try_arranging_one()
 
     def shuffle_people(self):
-        random.shuffle(self.manager.people)
+        random.shuffle(self.people)
 
     def try_arranging_one(self):
-        person = random.choice(self.manager.people)
-        if self.manager.seat_table.count_available_seats() > 0:
-            seat = self.manager.seat_table.get_next_available_seat()
+        person = random.choice(self.people)
+        if self.seat_table.count_available_seats() > 0:
+            seat = self.seat_table.get_next_available_seat()
             seat.set_user(person)
-            if self.manager.ruleset.check(seat.get_seat_group()):
-                self.manager.people.remove(person)
-                return IterationResult(True, self.manager.seat_table, seat, person)
+            if self.ruleset.check(seat.get_seat_group()):
+                self.people.remove(person)
+                return IterationResult(True, self.seat_table, seat, person)
             seat.clear_user()
-            return IterationResult(False, self.manager.seat_table)
+            return IterationResult(False, self.seat_table)
         else:
-            return IterationResult(False, self.manager.seat_table)
+            return IterationResult(False, self.seat_table)
 
 
 class IterationResult:
@@ -42,4 +44,3 @@ class IterationResult:
         self.seat = seat
         self.person = person
         self.seat_table = seat_table
-
