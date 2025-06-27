@@ -78,6 +78,7 @@ class ShuffleInterface(HeaderCardWidget):
         for k, v in presets.items():
             manager.getTable().set_user_in_pos(k, v)
 
+        shuffler = core.Shuffler(manager.getPeoples(), manager.getTable(), core.Ruleset([core.Rule("unique_in_group", ["gender"])]))
         # TODO 排座
 
     def handleClearButtonClicked(self):

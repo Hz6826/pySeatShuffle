@@ -226,15 +226,17 @@ class Manager(QWidget):
         """
         return self.table
 
-    def setTable(self, table):
+    def setTable(self, table, widget=None):
         """
         设置表格
         :param table:
         """
+        if widget is None:
+            widget = {}
         self.table = table
         self.removeTable()
 
-        self.table_widget = {}
+        self.table_widget = widget
 
         table = self.getTable()
         offset_r, offset_c = table.get_offset()
