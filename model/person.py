@@ -25,3 +25,9 @@ class Person:
             "name": self.name,
             "properties": self.properties
         }
+
+    def __getitem__(self, item):
+        if item == "name":
+            return self.name
+        else:
+            return self.properties[item]

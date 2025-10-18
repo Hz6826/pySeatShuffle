@@ -1,6 +1,8 @@
 """
 Shuffler
 """
+import logging
+
 from model import *
 
 import random
@@ -16,7 +18,8 @@ class Shuffler:
         return self
 
     def __next__(self):
-        if len(self.people) == 0 or self.seat_table.count_available_seats() == 0:
+        logging.log(logging.INFO, f"剩余人数：{len(self.people)}，座位数：{self.seat_table.count_available_seats()}")
+        if len(self.people) <= 0 or self.seat_table.count_available_seats() <= 0:
             raise StopIteration
         else:
             return self.try_arranging_one()
@@ -27,19 +30,19 @@ class Shuffler:
     def try_arranging_one(self):
         person = random.choice(self.people)
         if self.seat_table.count_available_seats() > 0:
-            seat = self.seat_table.get_next_available_seat()
+            seat: Seat = self.seat_table.get_next_available_seat()
             seat.set_user(person)
-            if self.ruleset.check(seat.get_seat_group()):
+            if self.ruleset.check(self.seat_table.seat_groups):  # if this arrange PASS the rules
                 self.people.remove(person)
                 return IterationResult(True, self.seat_table, seat, person)
             seat.clear_user()
-            return IterationResult(False, self.seat_table)
+            return IterationResult(False, self.seat_table, seat, person)
         else:
-            return IterationResult(False, self.seat_table)
+            return IterationResult(False, self.seat_table, None, person)
 
 
 class IterationResult:
-    def __init__(self, success, seat_table, seat=None, person=None):
+    def __init__(self, success, seat_table: SeatTable, seat:Seat|None=None, person:Person|None=None):
         self.success = success
         self.seat = seat
         self.person = person

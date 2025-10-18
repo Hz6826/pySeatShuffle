@@ -1,6 +1,7 @@
 """
 Seat Table Model
 """
+import logging
 
 from core.constants import *
 
@@ -10,9 +11,10 @@ class Seat:
         self.pos = pos  # row, col
         self.name = name
         self.user = None
+        self.parent = None # SeatGroup
 
     def is_available(self):
-        return self.user is not None
+        return self.user is None
 
     def get_pos(self):
         """
@@ -29,6 +31,9 @@ class Seat:
     def clear_user(self):
         self.user = None
 
+    def get_seat_group(self):
+        return self.parent
+
     def __str__(self):
         return f"Seat({self.pos}, {self.name}, {self.user})"
 
@@ -42,8 +47,11 @@ class Seat:
 
 class SeatGroup:
     def __init__(self, seats: list[Seat], name=None):
+        for seat in seats:
+            seat.parent = self
         self.seats = seats
         self.name = name
+        self.parent = None # SeatTable
 
         self._cursor = 0
 
@@ -80,6 +88,8 @@ class SeatTable:
         :param name:
         :param metadata:
         """
+        for seat_group in seat_groups:
+            seat_group.parent = self
         self.seat_groups = seat_groups
         self.size = size
         self.name = name
@@ -130,7 +140,9 @@ class SeatTable:
         """
         Clear all users in the seat table.
         """
+        self._cursor = 0
         for seat_group in self.seat_groups:
+            seat_group._cursor = 0
             for seat in seat_group.get_seats():
                 seat.clear_user()
 

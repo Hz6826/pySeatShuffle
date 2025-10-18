@@ -9,9 +9,9 @@ class Ruleset:
         self.rules = rules
         self.relations = relations
 
-    def check(self, group):
+    def check(self, seat_groups):
         for rule in self.rules:
-            if not rule.check(group):
+            if not rule.check(seat_groups):
                 return False
         return True
 

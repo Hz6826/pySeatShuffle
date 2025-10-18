@@ -436,15 +436,15 @@ class Manager(QWidget):
     def setTablePeople(self, pos: (int, int), name: str | core.Person | PeopleWidget):
         """
         设置表格指定位置的人
-        :param r: 行
-        :param c: 列
+        :param name: 人的名字，可以为字符串，Person对象或People组件
+        :param pos: （行，列）
         :return: widget
         """
         if isinstance(name, str):
             if name in self.table_widget.keys():
                 name = self.people[name]["widget"]
-            elif isinstance(name, core.Person):
-                name = self.people[name.get_name()]["widget"]
+        elif isinstance(name, core.Person):
+            name = self.people[name.get_name()]["widget"]
         widget: PeopleWidgetTableBase | None = self.table_widget.get(pos, None)
         if widget:
             widget.setPeople(name)

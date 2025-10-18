@@ -1,3 +1,4 @@
+import logging
 import traceback
 
 from .widget import *
@@ -71,15 +72,26 @@ class ShuffleInterface(HeaderCardWidget):
         self.vBoxLayout2.addLayout(self.hBoxLayout)
 
     def handleShuffle(self):
-        if not manager.getTable():
+        table = manager.getTable()
+        if not table:
             return
         presets = manager.getTablePeoples()
-        manager.getTable().clear_all_users()
+        table.clear_all_users()
         for k, v in presets.items():
-            manager.getTable().set_user_in_pos(k, v)
+            table.set_user_in_pos(k, v)
 
-        shuffler = core.Shuffler(manager.getPeoples(), manager.getTable(), core.Ruleset([core.Rule("unique_in_group", ["gender"])]))
-        # TODO 排座
+        shuffler = core.Shuffler(manager.getPeoples(), table, core.Ruleset([core.Rule("unique_in_group", ["gender"])]))
+        for i in shuffler:
+            if i.success:
+                manager.setTablePeople(i.seat.pos, i.person)
+                manager.setPeople(i.person)
+
+                logging.info(f"成功将{i.person.get_name()}（属性：{i.person.get_properties()}）放置于座位{i.seat}。")
+            else:
+                if i.seat:
+                    logging.warning(f"无法将{i.person.get_name()}（属性：{i.person.get_properties()}）放置于座位{i.seat}！")
+                else:
+                    logging.warning(f"无法将{i.person.get_name()}（属性：{i.person.get_properties()}）放置于座位！")
 
     def handleClearButtonClicked(self):
         self.clearButton.setEnabled(False)
@@ -198,7 +210,7 @@ class EditInterface(HeaderCardWidget):
 
     def importSeat(self, get):
         try:
-            if not get:
+            if not get or not get[0]:
                 return
             if zb.getFileSuffix(get[0]) == ".xlsx":
                 manager.setTable(manager.XLSX_PARSER.parse(get[0]))
