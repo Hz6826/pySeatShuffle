@@ -65,7 +65,7 @@ class PeopleWidgetTableBase(CardWidget):
         super().__init__(parent)
         self.people = None
 
-        self.pos = pos
+        self.pos = tuple(pos)
 
         self.setAcceptDrops(True)
 
@@ -412,14 +412,14 @@ class Manager(QWidget):
         :param pos: 坐标
         :return:
         """
-        return self.table_widget.get(pos, None)
+        return self.table_widget.get(tuple(pos), None)
 
     def getTablePeople(self, pos: (int, int)):
         """
         获取指定位置的人员
         :return: People
         """
-        widget: PeopleWidgetTableBase | None = self.getTableWidget(pos)
+        widget: PeopleWidgetTableBase | None = self.getTableWidget(tuple(pos))
         if widget:
             return widget.getPeople().getPeople()
         return None
@@ -439,7 +439,7 @@ class Manager(QWidget):
         :return: widget
         """
         people = self.getPeopleWidget(name)
-        widget = self.getTableWidget(pos)
+        widget = self.getTableWidget(tuple(pos))
         if widget:
             widget.setPeople(people)
             logging.info(f"设置表格位置{pos}的人为{people.people.get_name()}！")
@@ -451,7 +451,7 @@ class Manager(QWidget):
         移除表格指定位置的人并放回列表
         :param pos:
         """
-        widget = self.table_widget.get(pos, None)
+        widget = self.table_widget.get(tuple(pos), None)
         if widget:
             people = widget.removePeople()
             people.setParent(None)
