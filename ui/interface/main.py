@@ -60,7 +60,7 @@ class ShuffleInterface(HeaderCardWidget):
         self.hBoxLayout = QHBoxLayout(self)
         self.hBoxLayout.setContentsMargins(0, 0, 0, 0)
 
-        self.buttonShuffle = PushButton("生成", self, FIF.ADD)
+        self.buttonShuffle = PushButton("自动排座", self, FIF.ADD)
         self.buttonShuffle.clicked.connect(self.handleShuffle)
 
         self.clearButton = ToolButton(FIF.DELETE, self)
@@ -75,10 +75,7 @@ class ShuffleInterface(HeaderCardWidget):
         table = manager.getTable()
         if not table:
             return
-        presets = manager.getTablePeoples()
-        table.clear_all_users()
-        for k, v in presets.items():
-            table.set_user_in_pos(k, v)
+        manager.clearTablePeoples()
 
         shuffler = core.Shuffler(manager.getPeoples(), table, core.Ruleset([core.Rule("unique_in_group", ["gender"])]))
         for i in shuffler:
