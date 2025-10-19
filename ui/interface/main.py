@@ -75,7 +75,7 @@ class ShuffleInterface(HeaderCardWidget):
         table = manager.getTable()
         if not table:
             return
-        manager.clearTablePeoples()
+        manager.clearTablePeople()
 
         shuffler = core.Shuffler(manager.getPeoples(), table, core.Ruleset([core.Rule("unique_in_group", ["gender"])]))
         for i in shuffler:
@@ -101,7 +101,7 @@ class ShuffleInterface(HeaderCardWidget):
         )
 
         def confirm():
-            manager.clearTablePeoples()
+            manager.clearTablePeople()
             self.clearButton.setEnabled(True)
             infobar.close()
             InfoBar.info("成功！", "已清空预览区所有人员！", parent=self.window().mainPage)

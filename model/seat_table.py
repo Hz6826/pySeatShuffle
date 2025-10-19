@@ -70,6 +70,9 @@ class SeatGroup:
     def get_next_available_seat(self):
         return next((seat for seat in self.seats if seat.is_available()), None)
 
+    def reset_cursor(self):
+        self._cursor = 0
+
     def __str__(self):
         return f"SeatGroup({self.name}, {self.count_seats()}, [" + ", ".join([str(seat) for seat in self.seats]) + "])"
 
@@ -140,11 +143,17 @@ class SeatTable:
         """
         Clear all users in the seat table.
         """
-        self._cursor = 0
+        self.reset_cursor()
+
         for seat_group in self.seat_groups:
             seat_group._cursor = 0
             for seat in seat_group.get_seats():
                 seat.clear_user()
+
+    def reset_cursor(self):
+        self._cursor = 0
+        for seat_group in self.seat_groups:
+            seat_group.reset_cursor()
 
     def get_seat_groups(self):
         return self.seat_groups

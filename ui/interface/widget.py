@@ -457,11 +457,12 @@ class Manager(QWidget):
             people.setParent(None)
             self.setListPeoples(False)
 
-    def clearTablePeoples(self):
+    def clearTablePeople(self):
         """
         清空表格中的所有人，并放回列表
         """
         self.setListPeoples()
+        self.table.clear_all_users()
 
     def removeTable(self):
         """
