@@ -84,8 +84,6 @@ class ShuffleInterface(HeaderCardWidget):
         for i in shuffler:
             if i.success:
                 manager.setTablePeople(i.seat.pos, i.person)
-                manager.setPeople(i.person)
-
                 logging.info(f"成功将{i.person.get_name()}（属性：{i.person.get_properties()}）放置于座位{i.seat}。")
             else:
                 if i.seat:

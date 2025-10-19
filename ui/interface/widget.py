@@ -61,11 +61,11 @@ class PeopleWidget(QFrame):
 
 
 class PeopleWidgetTableBase(CardWidget):
-    def __init__(self, parent=None, r: int = 0, c: int = 0):
+    def __init__(self, parent=None, pos: (int, int) = (0, 0)):
         super().__init__(parent)
         self.people = None
 
-        self.pos = (r, c)
+        self.pos = pos
 
         self.setAcceptDrops(True)
 
@@ -192,12 +192,11 @@ class Manager(QWidget):
     JSON_PARSER = core.SeatTableParserJson()
     EXPORTER = core.SeatTableExporter()
 
-    table: core.SeatTable = None
-    people: dict = {}  # {name:{"people":core.Person, "widget": PeopleWidget}}
-    table_widget: dict = {}
-
     def __init__(self):
         super().__init__()
+        self.table: core.SeatTable = None
+        self.people: dict = {}  # {name:{"people":core.Person, "widget": PeopleWidget}}
+        self.table_widget: dict = {}
 
     @property
     def editInterface(self):
@@ -242,7 +241,7 @@ class Manager(QWidget):
         for group in self.table.get_seat_groups():
             for seat in group.get_seats():
                 r, c = seat.get_pos()
-                widget = PeopleWidgetTableBase(self, r, c)
+                widget = PeopleWidgetTableBase(self, (r, c))
                 self.table_widget[(r, c)] = widget
                 self.tableInterface.gridLayout.addWidget(widget, r - offset_r, c - offset_c, 1, 1)
         rt, ct = self.table.get_size()
@@ -297,7 +296,7 @@ class Manager(QWidget):
 
     def setPeople(self, people: core.Person | PeopleWidget):
         """
-        设置people
+        通过Person对象或PeopleWidget对象向people列表新增People
         :param people:
         """
         if isinstance(people, core.Person):
@@ -439,11 +438,11 @@ class Manager(QWidget):
         :param pos: （行，列）
         :return: widget
         """
-        name = self.getPeopleWidget(name)
+        people = self.getPeopleWidget(name)
         widget = self.getTableWidget(pos)
         if widget:
-            widget.setPeople(name)
-            logging.info(f"设置表格位置{pos}的人为{name.people.get_name()}！")
+            widget.setPeople(people)
+            logging.info(f"设置表格位置{pos}的人为{people.people.get_name()}！")
             return True
         return False
 
