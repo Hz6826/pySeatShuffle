@@ -84,20 +84,20 @@ class PeopleWidgetTableBase(CardWidget):
         self.removeButton.hide()
 
     def dragEnterEvent(self, event):
-        if event.mimeData().hasText() and event.mimeData().hasFormat("PeopleWidget") and not self.people:
+        if event.mimeData().hasText() and event.mimeData().hasFormat("PeopleWidget"):
             event.accept()
         else:
             event.ignore()
 
     def dragMoveEvent(self, event):
-        if event.mimeData().hasText() and event.mimeData().hasFormat("PeopleWidget") and not self.people:
+        if event.mimeData().hasText() and event.mimeData().hasFormat("PeopleWidget"):
             event.setDropAction(Qt.MoveAction)
             event.accept()
         else:
             event.ignore()
 
     def dropEvent(self, event):
-        if event.mimeData().hasText() and event.mimeData().hasFormat("PeopleWidget") and not self.people:
+        if event.mimeData().hasText() and event.mimeData().hasFormat("PeopleWidget"):
             people_name = bytes(event.mimeData().data("PeopleWidget")).decode()
             if manager.hasPeople(people_name):
                 self.setPeople(manager.getPeopleWidget(people_name))
