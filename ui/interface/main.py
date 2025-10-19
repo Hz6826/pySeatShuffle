@@ -64,7 +64,7 @@ class ShuffleInterface(HeaderCardWidget):
         self.buttonShuffle.clicked.connect(self.handleShuffle)
 
         self.clearButton = ToolButton(FIF.DELETE, self)
-        zbw.setToolTip(self.clearButton, "清空预览区所有人员")
+        self.clearButton.setNewToolTip("清空预览区所有人员")
         self.clearButton.clicked.connect(self.handleClearButtonClicked)
 
         self.hBoxLayout.addWidget(self.buttonShuffle, 2)
@@ -256,7 +256,6 @@ class ListInterface(zbw.BasicTab):
         super().__init__(parent=parent)
 
         self.cardGroup = zbw.CardGroup(self)
-        self.cardGroup.setShowTitle(False)
 
         self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
         self.vBoxLayout.setSpacing(0)

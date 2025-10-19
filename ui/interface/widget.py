@@ -55,7 +55,7 @@ class PeopleWidget(QFrame):
 
     def setParent(self, a0):
         old = self.parent()
-        if isinstance(old, PeopleWidgetTableBase) or isinstance(old,PeopleWidgetBase):
+        if isinstance(old, PeopleWidgetTableBase) or isinstance(old, PeopleWidgetBase):
             self.parent().removePeople()
         super().setParent(a0)
 
@@ -84,20 +84,20 @@ class PeopleWidgetTableBase(CardWidget):
         self.removeButton.hide()
 
     def dragEnterEvent(self, event):
-        if event.mimeData().hasText() and event.mimeData().hasFormat("PeopleWidget"):
+        if event.mimeData().hasText() and event.mimeData().hasFormat("PeopleWidget") and not self.people:
             event.accept()
         else:
             event.ignore()
 
     def dragMoveEvent(self, event):
-        if event.mimeData().hasText() and event.mimeData().hasFormat("PeopleWidget"):
+        if event.mimeData().hasText() and event.mimeData().hasFormat("PeopleWidget") and not self.people:
             event.setDropAction(Qt.MoveAction)
             event.accept()
         else:
             event.ignore()
 
     def dropEvent(self, event):
-        if event.mimeData().hasText() and event.mimeData().hasFormat("PeopleWidget"):
+        if event.mimeData().hasText() and event.mimeData().hasFormat("PeopleWidget") and not self.people:
             people_name = bytes(event.mimeData().data("PeopleWidget")).decode()
             if manager.hasPeople(people_name):
                 self.setPeople(manager.getPeopleWidget(people_name))
@@ -128,7 +128,7 @@ class PeopleWidgetTableBase(CardWidget):
         self.people = people
         self.vBoxLayout.addWidget(people)
         self.people.stackUnder(self.removeButton)
-        zbw.setToolTip(self, "\n".join([self.people.people.get_name()] + [f"{k}：{v}" for k, v in self.people.people.get_properties().items()]))
+        self.setNewToolTip("\n".join([self.people.people.get_name()] + [f"{k}：{v}" for k, v in self.people.people.get_properties().items()]))
 
     def removePeople(self):
         self.vBoxLayout.removeWidget(self.people)
@@ -173,7 +173,7 @@ class PeopleWidgetBase(CardWidget):
     def setPeople(self, people: PeopleWidget):
         self.people = people
         self.vBoxLayout.addWidget(people)
-        zbw.setToolTip(self, "\n".join([self.people.people.get_name()] + [f"{k}：{v}" for k, v in self.people.people.get_properties().items()]))
+        self.setNewToolTip("\n".join([self.people.people.get_name()] + [f"{k}：{v}" for k, v in self.people.people.get_properties().items()]))
 
     def removePeople(self):
         self.parent().removeCard(self.people.people.get_name())
@@ -238,15 +238,14 @@ class Manager(QWidget):
 
         self.table_widget = widget
 
-        table = self.getTable()
-        offset_r, offset_c = table.get_offset()
-        for group in table.get_seat_groups():
+        offset_r, offset_c = self.table.get_offset()
+        for group in self.table.get_seat_groups():
             for seat in group.get_seats():
                 r, c = seat.get_pos()
                 widget = PeopleWidgetTableBase(self, r, c)
                 self.table_widget[(r, c)] = widget
                 self.tableInterface.gridLayout.addWidget(widget, r - offset_r, c - offset_c, 1, 1)
-        rt, ct = table.get_size()
+        rt, ct = self.table.get_size()
         for r in range(rt):
             for c in range(ct):
                 if not self.tableInterface.gridLayout.itemAtPosition(r, c):
@@ -440,14 +439,11 @@ class Manager(QWidget):
         :param pos: （行，列）
         :return: widget
         """
-        if isinstance(name, str):
-            if name in self.table_widget.keys():
-                name = self.people[name]["widget"]
-        elif isinstance(name, core.Person):
-            name = self.people[name.get_name()]["widget"]
-        widget: PeopleWidgetTableBase | None = self.table_widget.get(pos, None)
+        name = self.getPeopleWidget(name)
+        widget = self.getTableWidget(pos)
         if widget:
             widget.setPeople(name)
+            logging.info(f"设置表格位置{pos}的人为{name.people.get_name()}！")
             return True
         return False
 
