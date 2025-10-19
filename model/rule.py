@@ -27,15 +27,11 @@ class Rule:
         for group in groups:
             if self.t == 'identical_in_group':
                 # Check if the specified property is identical for all users in the group
-                if self._check_identical_in_group(group):
-                    return not self.reversed  # Return False if rule not satisfied and not reversed
-                else:
+                if not self._check_identical_in_group(group):
                     return self.reversed
             elif self.t == 'unique_in_group':
                 # Check if the specified property has unique values for all users in the group
-                if self._check_unique_in_group(group):
-                    return not self.reversed  # Return False if rule not satisfied and not reversed
-                else:
+                if not self._check_unique_in_group(group):
                     return self.reversed
             else:
                 raise Exception('Invalid rule type')

@@ -77,7 +77,7 @@ class ShuffleInterface(HeaderCardWidget):
             return
         manager.clearTablePeople()
 
-        shuffler = core.Shuffler(manager.getPeoples(), table, core.Ruleset([core.Rule("unique_in_group", ["gender"])]))
+        shuffler = core.Shuffler(manager.getPeoples(), table, core.Ruleset([core.Rule("identical_in_group", ["gender"])]))
         for i in shuffler:
             if i.success:
                 manager.setTablePeople(i.seat.pos, i.person)
