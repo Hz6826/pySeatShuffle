@@ -59,6 +59,52 @@ class PeopleWidget(QFrame):
             self.parent().removePeople()
         super().setParent(a0)
 
+    def stopAnimation(self):
+        if hasattr(self, "animation") and self.animation.state() == QPropertyAnimation.Running:
+            self.animation.stop()
+            self.moveAnimationFinished()
+
+    def moveAnimation(self, old_pos: QPoint, new_pos: QPoint):
+        self.stopAnimation()
+
+        self.temp_widget = QWidget(self.window())
+        self.temp_widget.setWindowFlags(Qt.FramelessWindowHint | Qt.Tool | Qt.WindowTransparentForInput)
+        self.temp_widget.setAttribute(Qt.WA_TranslucentBackground)
+        self.temp_widget.setStyleSheet("background: transparent;")
+
+        # 创建组件的副本用于动画
+        drag_pixmap = QPixmap(self.size())
+        drag_pixmap.fill(Qt.transparent)
+        self.render(drag_pixmap)
+        self.hide()
+
+        pixmap_label = QLabel(self.temp_widget)
+        pixmap_label.setPixmap(drag_pixmap)
+        pixmap_label.move(0, 0)
+
+        # 设置临时窗口的位置和大小
+        self.temp_widget.resize(self.size())
+        self.temp_widget.move(old_pos)
+        self.temp_widget.show()
+
+        # 创建动画
+        self.animation = QPropertyAnimation(self.temp_widget, b"pos")
+        self.animation.setStartValue(old_pos)
+        self.animation.setEndValue(new_pos)
+        self.animation.setDuration(300)  # 300ms 动画
+        self.animation.setEasingCurve(QEasingCurve.OutCubic)
+
+        # 动画完成后的回调
+
+        self.animation.finished.connect(self.moveAnimationFinished)
+
+        self.animation.start()
+
+    def moveAnimationFinished(self):
+        self.show()
+        self.temp_widget.hide()
+        self.temp_widget.deleteLater()
+
 
 class PeopleWidgetTableBase(CardWidget):
     def __init__(self, parent=None, pos: (int, int) = (0, 0)):
@@ -110,8 +156,11 @@ class PeopleWidgetTableBase(CardWidget):
         return self.people
 
     def setPeople(self, people: PeopleWidget):
+        people.stopAnimation()
+        old_pos = people.mapToGlobal(QPoint(0, 0))
         old_people = self.people
         old_parent = people.parent()
+
         if old_people:
             if isinstance(old_parent, PeopleWidgetTableBase):
                 self.removePeople()
@@ -121,13 +170,22 @@ class PeopleWidgetTableBase(CardWidget):
         else:
             if isinstance(old_parent, PeopleWidgetTableBase):
                 old_parent.removePeople()
-
             elif isinstance(old_parent, PeopleWidgetBase):
                 old_parent.removePeople()
+
         self.removePeople()
         self.people = people
+
+        # 计算目标位置
         self.vBoxLayout.addWidget(people)
         self.people.stackUnder(self.removeButton)
+        self.layout().activate()  # 强制布局更新
+        QApplication.processEvents()  # 处理 pending 事件
+
+        new_pos = self.mapToGlobal(self.people.pos())
+
+        self.people.moveAnimation(old_pos, new_pos)
+
         self.setNewToolTip("\n".join([self.people.people.get_name()] + [f"{k}：{v}" for k, v in self.people.people.get_properties().items()]))
 
     def removePeople(self):

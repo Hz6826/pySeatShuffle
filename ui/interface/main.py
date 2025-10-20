@@ -47,6 +47,8 @@ class TableInterface(HeaderCardWidget):
 
 
 class ShuffleInterface(HeaderCardWidget):
+    shuffleSignal = pyqtSignal(tuple, core.Person)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setMinimumWidth(100)
@@ -60,33 +62,47 @@ class ShuffleInterface(HeaderCardWidget):
         self.hBoxLayout = QHBoxLayout(self)
         self.hBoxLayout.setContentsMargins(0, 0, 0, 0)
 
-        self.buttonShuffle = PushButton("自动排座", self, FIF.ADD)
-        self.buttonShuffle.clicked.connect(self.handleShuffle)
+        self.shuffleButton = PushButton("自动排座", self, FIF.ADD)
+        self.shuffleButton.clicked.connect(self.shuffleButtonClicked)
 
         self.clearButton = ToolButton(FIF.DELETE, self)
         self.clearButton.setNewToolTip("清空预览区所有人员")
         self.clearButton.clicked.connect(self.handleClearButtonClicked)
 
-        self.hBoxLayout.addWidget(self.buttonShuffle, 2)
+        self.hBoxLayout.addWidget(self.shuffleButton, 2)
         self.hBoxLayout.addWidget(self.clearButton, 0, Qt.AlignCenter)
         self.vBoxLayout2.addLayout(self.hBoxLayout)
 
-    def handleShuffle(self):
+        self.shuffleSignal.connect(self._shuffle)
+
+    def shuffleButtonClicked(self):
+        self.shuffleButton.setEnabled(False)
         table = manager.getTable()
         if not table:
             return
         manager.clearTablePeople()
-
         shuffler = core.Shuffler(manager.getPeoples(), table, core.Ruleset([core.Rule("identical_in_group", ["gender"])]))
+        self.shuffle(shuffler)
+
+    def _shuffle(self, pos, person):
+        manager.setTablePeople(pos, person)
+
+    @zb.threadPoolDecorator(program.THREAD_POOL)
+    def shuffle(self, shuffler):
+        import time
+
         for i in shuffler:
             if i.success:
-                manager.setTablePeople(i.seat.pos, i.person)
+                self.shuffleSignal.emit(i.seat.pos, i.person)
                 logging.info(f"成功将{i.person.get_name()}（属性：{i.person.get_properties()}）放置于座位{i.seat}。")
             else:
                 if i.seat:
                     logging.warning(f"无法将{i.person.get_name()}（属性：{i.person.get_properties()}）放置于座位{i.seat}！")
                 else:
                     logging.warning(f"无法将{i.person.get_name()}（属性：{i.person.get_properties()}）放置于座位！")
+            time.sleep(0.025)
+        time.sleep(0.25)
+        self.shuffleButton.setEnabled(True)
 
     def handleClearButtonClicked(self):
         self.clearButton.setEnabled(False)
