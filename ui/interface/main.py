@@ -1,6 +1,7 @@
 import logging
 import traceback
 
+from core import NoValidArrangementError
 from .widget import *
 
 
@@ -90,17 +91,19 @@ class ShuffleInterface(HeaderCardWidget):
     @zb.threadPoolDecorator(program.THREAD_POOL)
     def shuffle(self, shuffler):
         import time
-
-        for i in shuffler:
-            if i.success:
-                self.shuffleSignal.emit(i.seat.pos, i.person)
-                logging.info(f"成功将{i.person.get_name()}（属性：{i.person.get_properties()}）放置于座位{i.seat}。")
-            else:
-                if i.seat:
-                    logging.warning(f"无法将{i.person.get_name()}（属性：{i.person.get_properties()}）放置于座位{i.seat}！")
+        try:
+            for i in shuffler:
+                if i.success:
+                    self.shuffleSignal.emit(i.seat.pos, i.person)
+                    logging.info(f"成功将{i.person.get_name()}（属性：{i.person.get_properties()}）放置于座位{i.seat}。")
                 else:
-                    logging.warning(f"无法将{i.person.get_name()}（属性：{i.person.get_properties()}）放置于座位！")
-            time.sleep(0.025)
+                    if i.seat:
+                        logging.warning(f"无法将{i.person.get_name()}（属性：{i.person.get_properties()}）放置于座位{i.seat}！")
+                    else:
+                        logging.warning(f"无法将{i.person.get_name()}（属性：{i.person.get_properties()}）放置于座位！")
+                time.sleep(0.025)
+        except NoValidArrangementError:
+            logging.error("没有有效的排座方案！")  # TODO
         time.sleep(0.25)
         self.shuffleButton.setEnabled(True)
 

@@ -14,6 +14,8 @@ class Shuffler:
         self.seat_table = seat_table
         self.ruleset = ruleset
 
+        self.candidates = people.copy()
+
     def __iter__(self):
         return self
 
@@ -28,12 +30,18 @@ class Shuffler:
         random.shuffle(self.people)
 
     def try_arranging_one(self):
-        person = random.choice(self.people)
+        if len(self.candidates) <= 0:
+            raise NoValidArrangementError
+
+        person = random.choice(self.candidates)
+        self.candidates.remove(person)
+
         if self.seat_table.count_available_seats() > 0:
             seat: Seat = self.seat_table.get_next_available_seat()
             seat.set_user(person)
             if self.ruleset.check(self.seat_table.seat_groups):  # if this arrange PASS the rules
                 self.people.remove(person)
+                self.candidates = self.people.copy()
                 return IterationResult(True, self.seat_table, seat, person)
             seat.clear_user()
             return IterationResult(False, self.seat_table, seat, person)
@@ -47,3 +55,6 @@ class IterationResult:
         self.seat = seat
         self.person = person
         self.seat_table = seat_table
+
+class NoValidArrangementError(Exception):
+    pass
