@@ -1,7 +1,3 @@
-import logging
-import traceback
-
-from core import NoValidArrangementError
 from .widget import *
 
 
@@ -102,7 +98,7 @@ class ShuffleInterface(HeaderCardWidget):
                     else:
                         logging.warning(f"无法将{i.person.get_name()}（属性：{i.person.get_properties()}）放置于座位！")
                 time.sleep(0.025)
-        except NoValidArrangementError:
+        except core.NoValidArrangementError:
             logging.error("没有有效的排座方案！")  # TODO
         time.sleep(0.25)
         self.shuffleButton.setEnabled(True)
