@@ -17,6 +17,8 @@ class PeopleWidget(QFrame):
 
         self.setLayout(self.vBoxLayout)
 
+        self.setStyleSheet("background: transparent;")
+
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
             self.drag_start_position = event.pos()
@@ -67,10 +69,7 @@ class PeopleWidget(QFrame):
     def moveAnimation(self, old_pos: QPoint, new_pos: QPoint):
         self.stopAnimation()
 
-        self.temp_widget = QWidget(self.window())
-        self.temp_widget.setWindowFlags(Qt.FramelessWindowHint | Qt.Tool | Qt.WindowTransparentForInput)
-        self.temp_widget.setAttribute(Qt.WA_TranslucentBackground)
-        self.temp_widget.setStyleSheet("background: transparent;")
+
 
         # 创建组件的副本用于动画
         drag_pixmap = QPixmap(self.size())
@@ -78,9 +77,10 @@ class PeopleWidget(QFrame):
         self.render(drag_pixmap)
         self.hide()
 
-        pixmap_label = QLabel(self.temp_widget)
-        pixmap_label.setPixmap(drag_pixmap)
-        pixmap_label.move(0, 0)
+        self.temp_widget = QLabel(self.window())
+        self.temp_widget.setAttribute(Qt.WA_TranslucentBackground)
+        self.temp_widget.setPixmap(drag_pixmap)
+        self.temp_widget.move(0, 0)
 
         # 设置临时窗口的位置和大小
         self.temp_widget.resize(self.size())
@@ -157,7 +157,7 @@ class PeopleWidgetTableBase(CardWidget):
 
     def setPeople(self, people: PeopleWidget):
         people.stopAnimation()
-        old_pos = people.mapToGlobal(QPoint(0, 0))
+        old_pos = people.mapToGlobal(QPoint(0, 0)) - self.window().pos()
         old_people = self.people
         old_parent = people.parent()
 
@@ -182,7 +182,7 @@ class PeopleWidgetTableBase(CardWidget):
         self.layout().activate()  # 强制布局更新
         QApplication.processEvents()  # 处理 pending 事件
 
-        new_pos = self.mapToGlobal(self.people.pos())
+        new_pos = self.mapToGlobal(self.people.pos()) - self.window().pos()
 
         self.people.moveAnimation(old_pos, new_pos)
 
@@ -520,7 +520,8 @@ class Manager(QWidget):
         清空表格中的所有人，并放回列表
         """
         self.setListPeoples()
-        self.table.clear_all_users()
+        if self.table:
+            self.table.clear_all_users()
 
     def removeTable(self):
         """
