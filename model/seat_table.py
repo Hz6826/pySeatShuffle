@@ -205,7 +205,7 @@ class SeatTable:
     def _create_cache(self):
         for seat_group in self.seat_groups:
             for seat in seat_group.get_seats():
-                self.cache[seat.get_pos()] = seat
+                self.cache[tuple(seat.get_pos())] = seat
 
     def get_random_seat(self, available=True):
         return random.choice([seat for seat_group in self.seat_groups
