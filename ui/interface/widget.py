@@ -1,4 +1,24 @@
-from ..program import *
+try:
+    from source.addon import *
+    import addon.pySeatShuffle.core as core
+
+    addonBase = AddonBase()
+
+
+    def addonInit():
+        global program, setting, window, progressCenter
+        program = addonBase.program
+        setting = addonBase.setting
+        window = addonBase.window
+        progressCenter = addonBase.progressCenter
+except:
+    import core
+    from ..program import *
+
+try:
+    from program.source.addon import *
+except:
+    pass
 
 
 class PeopleWidget(QFrame):
@@ -68,8 +88,6 @@ class PeopleWidget(QFrame):
 
     def moveAnimation(self, old_pos: QPoint, new_pos: QPoint):
         self.stopAnimation()
-
-
 
         # 创建组件的副本用于动画
         drag_pixmap = QPixmap(self.size())
@@ -189,6 +207,7 @@ class PeopleWidgetTableBase(CardWidget):
         self.setNewToolTip("\n".join([self.people.people.get_name()] + [f"{k}：{v}" for k, v in self.people.people.get_properties().items()]))
 
     def removePeople(self):
+        self.removeNewToolTip()
         self.vBoxLayout.removeWidget(self.people)
         self.people, people = None, self.people
         return people
@@ -256,25 +275,14 @@ class Manager(QWidget):
         self.people: dict = {}  # {name:{"people":core.Person, "widget": PeopleWidget}}
         self.table_widget: dict = {}
 
-    @property
-    def editInterface(self):
-        return self.parent().mainPage.editInterface
-
-    @property
-    def shuffleInterface(self):
-        return self.parent().mainPage.shuffleInterface
-
-    @property
-    def tableInterface(self):
-        return self.parent().mainPage.tableInterface
-
-    @property
-    def listInterface(self):
-        return self.parent().mainPage.editInterface.listInterface
-
-    @property
-    def rulesInterface(self):
-        return self.parent().mainPage.editInterface.rulesInterface
+        try:
+            self.editInterface = self.parent().mainPage.editInterface
+            self.shuffleInterface = self.parent().mainPage.shuffleInterface
+            self.tableInterface = self.parent().mainPage.tableInterface
+            self.listInterface = self.parent().mainPage.editInterface.listInterface
+            self.rulesInterface = self.parent().mainPage.editInterface.rulesInterface
+        except:
+            pass
 
     def getTable(self):
         """

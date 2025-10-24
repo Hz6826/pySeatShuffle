@@ -35,6 +35,7 @@ class Person:
         else:
             return self.properties[item]
 
+
 class DummyPerson(Person):
     def __init__(self):
         super().__init__("Dummy", {})

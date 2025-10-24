@@ -3,14 +3,17 @@ import json
 
 from openpyxl.styles import NamedStyle
 
-from model import *
+try:
+    from model import *
+except:
+    from addon.pySeatShuffle.model import *
 from .constants import *
 
 import zbToolLib as zbt
 
 
 class SeatTableExporter:
-    def export(self, table: SeatTable, format: str=F_JSON, path: str=None, template: str=None, create_dir = True):
+    def export(self, table: SeatTable, format: str = F_JSON, path: str = None, template: str = None, create_dir=True):
         """
         Export a specific seat table in a specific format
         :param create_dir:
@@ -31,7 +34,6 @@ class SeatTableExporter:
             else:
                 self.export(table, F_JSON, path)
 
-
     def export_json(self, table: SeatTable, path, create_dir):
         path = self.generate_path(table, path, ".json")
         if create_dir and not zbt.existPath(zbt.getFileDir(path)):
@@ -49,9 +51,9 @@ class SeatTableExporter:
 
         if template is None:
             if (metadata is not None and
-                hasattr(metadata, 'format') and
-                metadata.format == F_XLSX and
-                hasattr(metadata, 'file_path')
+                    hasattr(metadata, 'format') and
+                    metadata.format == F_XLSX and
+                    hasattr(metadata, 'file_path')
             ):
                 template = metadata.file_path
             else:
@@ -68,7 +70,6 @@ class SeatTableExporter:
             time_cell = ws.cell(*metadata.gen_time_cell_pos)
             time_cell.value = datetime.datetime.now()
             time_cell.style = NamedStyle(name="date_style", number_format="YYYY-MM-DD")
-
 
         if hasattr(metadata, "offset_row") and metadata.offset_row is not None:
             offset_row = metadata.offset_row
@@ -90,7 +91,6 @@ class SeatTableExporter:
 
         wb.save(path)
 
-
     # noinspection PyMethodMayBeStatic
     def generate_path(self, table, path, suffix):
         if path is None:
@@ -100,7 +100,7 @@ class SeatTableExporter:
                 path = zbt.getFileDir(file_path) + "/" + zbt.getFileName(file_path, False) + "_export"
                 if zbt.existPath(path + suffix):
                     i = 1
-                    while zbt.existPath(path + " (" + str(i) + ")" +  suffix):
+                    while zbt.existPath(path + " (" + str(i) + ")" + suffix):
                         i += 1
                     path = path + " (" + str(i) + ")" + suffix
                 else:
