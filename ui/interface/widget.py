@@ -1,6 +1,6 @@
 try:
     from source.addon import *
-    import addon.pySeatShuffle.core as core
+    import pySeatShuffle.core as core
 
     addonBase = AddonBase()
 
