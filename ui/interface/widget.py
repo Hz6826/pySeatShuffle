@@ -224,6 +224,9 @@ class PeopleWidgetTableBase(CardWidget):
         old_people = self.people
         old_parent = people.parent()
 
+        if old_parent is self:
+            return
+
         if old_people:
             if isinstance(old_parent, PeopleWidgetTableBase):
                 self.removePeople()
