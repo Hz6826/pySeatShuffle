@@ -11,6 +11,11 @@ try:
         setting = addonBase.setting
         window = addonBase.window
         progressCenter = addonBase.progressCenter
+
+        setting.adds({"shuffleAnimationLength": 1.0,
+                      "shuffleAnimationDelay": 0.1,
+                      "shuffleRetryTime": 200,
+                      })
 except:
     import core
     from ..program import *
@@ -139,22 +144,22 @@ class PeopleWidget(QFrame):
 
         # 创建位置动画（两个控件同时移动）
         self.pos_animation = QPropertyAnimation()
-        self.pos_animation.setDuration(300)
+        self.pos_animation.setDuration(int(setting.read("shuffleAnimationLength") * 1000))
         self.pos_animation.setEasingCurve(QEasingCurve.OutCubic)
 
         # 创建透明度动画
         old_opacity_animation = QPropertyAnimation(old_opacity_effect, b"opacity")
-        old_opacity_animation.setDuration(300)
+        old_opacity_animation.setDuration(int(setting.read("shuffleAnimationLength") * 1000))
         old_opacity_animation.setStartValue(1.0)
-        old_opacity_animation.setKeyValueAt(0.5, 1.0)
-        old_opacity_animation.setKeyValueAt(0.9, 0.0)
+        old_opacity_animation.setKeyValueAt(0.4, 1.0)
+        old_opacity_animation.setKeyValueAt(0.8, 0.0)
         old_opacity_animation.setEndValue(0.0)
 
         new_opacity_animation = QPropertyAnimation(new_opacity_effect, b"opacity")
-        new_opacity_animation.setDuration(300)
+        new_opacity_animation.setDuration(int(setting.read("shuffleAnimationLength") * 1000))
         new_opacity_animation.setStartValue(0.0)
-        new_opacity_animation.setKeyValueAt(0.1, 0.0)
-        new_opacity_animation.setKeyValueAt(0.5, 1.0)
+        new_opacity_animation.setKeyValueAt(0.2, 0.0)
+        new_opacity_animation.setKeyValueAt(0.6, 1.0)
         new_opacity_animation.setEndValue(1.0)
 
         # 使用动画组同时执行所有动画
@@ -162,13 +167,13 @@ class PeopleWidget(QFrame):
 
         # 为两个控件分别创建位置动画
         old_pos_animation = QPropertyAnimation(self.old_temp_widget, b"pos")
-        old_pos_animation.setDuration(300)
+        old_pos_animation.setDuration(int(setting.read("shuffleAnimationLength") * 1000))
         old_pos_animation.setStartValue(old_pos)
         old_pos_animation.setEndValue(new_pos)
         old_pos_animation.setEasingCurve(QEasingCurve.OutCubic)
 
         new_pos_animation = QPropertyAnimation(self.new_temp_widget, b"pos")
-        new_pos_animation.setDuration(300)
+        new_pos_animation.setDuration(int(setting.read("shuffleAnimationLength") * 1000))
         new_pos_animation.setStartValue(old_pos)
         new_pos_animation.setEndValue(new_pos)
         new_pos_animation.setEasingCurve(QEasingCurve.OutCubic)
@@ -232,7 +237,7 @@ class PeopleWidgetTableBase(CardWidget):
     def dropEvent(self, event):
         if event.mimeData().hasText() and event.mimeData().hasFormat("PeopleWidget"):
             people_name = bytes(event.mimeData().data("PeopleWidget")).decode()
-            if manager.hasPeople(people_name):
+            if manager.hasPeople(people_name) and not self.people or not isinstance(manager.getPeopleWidget(people_name).parent(), PeopleWidgetBase):
                 self.setPeople(manager.getPeopleWidget(people_name))
             event.setDropAction(Qt.MoveAction)
             event.accept()
@@ -243,20 +248,22 @@ class PeopleWidgetTableBase(CardWidget):
         return self.people
 
     def setPeople(self, people: PeopleWidget):
-        people.stopAnimation()
-
-        # 在移动前获取旧位置的pixmap
-        old_pixmap = QPixmap(people.size())
-        old_pixmap.fill(Qt.transparent)
-        people.render(old_pixmap)
-
-        old_pos = people.mapToGlobal(QPoint(0, 0)) - self.window().mapToGlobal(QPoint(0, 0))
-
         old_people = self.people
         old_parent = people.parent()
 
         if old_parent is self:
             return
+
+        people.stopAnimation()
+
+        # 在移动前获取旧位置的pixmap
+        people.setTransparent(1.0)
+        old_pixmap = QPixmap(people.size())
+        old_pixmap.fill(Qt.transparent)
+        people.render(old_pixmap)
+        people.setTransparent(0.0)
+
+        old_pos = people.mapToGlobal(QPoint(0, 0)) - self.window().mapToGlobal(QPoint(0, 0))
 
         if old_people:
             if isinstance(old_parent, PeopleWidgetTableBase):
@@ -333,12 +340,15 @@ class PeopleWidgetBase(CardWidget):
     def setPeople(self, people: PeopleWidget, animation: bool = True):
         people.stopAnimation()
 
-        # 在移动前获取旧位置的pixmap
-        old_pixmap = QPixmap(people.size())
-        old_pixmap.fill(Qt.transparent)
-        people.render(old_pixmap)
+        if animation:
+            # 在移动前获取旧位置的pixmap
+            people.setTransparent(1.0)
+            old_pixmap = QPixmap(people.size())
+            old_pixmap.fill(Qt.transparent)
+            people.render(old_pixmap)
+            people.setTransparent(0.0)
 
-        old_pos = people.mapToGlobal(people.pos()) - self.window().mapToGlobal(QPoint(0, 0))
+            old_pos = people.mapToGlobal(QPoint(0, 0)) - self.window().mapToGlobal(QPoint(0, 0))
 
         people.setParent(self)
 
@@ -349,10 +359,9 @@ class PeopleWidgetBase(CardWidget):
         self.card_group.layout().activate()
         QApplication.processEvents()  # 处理 pending 事件
 
-        new_pos = self.mapToGlobal(self.people.pos()) - self.window().mapToGlobal(QPoint(0, 0))
-
-        # 传入旧位置的pixmap进行动画
         if animation:
+            new_pos = self.people.mapToGlobal(QPoint(0, 0)) - self.window().mapToGlobal(QPoint(0, 0))
+
             self.people.moveAnimation(old_pixmap, old_pos, new_pos)
 
         self.setNewToolTip("\n".join([self.people.people.get_name()] + [f"{k}：{v}" for k, v in self.people.people.get_properties().items()]))
@@ -366,6 +375,113 @@ class PeopleWidgetBase(CardWidget):
 
     def clearPeople(self):
         self.removePeople()
+
+
+class AnimationLengthSettingCard(SettingCard):
+
+    def __init__(self, parent=None):
+        super().__init__(FIF.SPEED_HIGH, "动画时长", "名称标签移动动画的时长", parent)
+        self.lineEdit = AcrylicLineEdit(self)
+        self.lineEdit.setPlaceholderText("时长秒数")
+        self.lineEdit.setNewToolTip("名称标签移动动画的时长")
+        self.lineEdit.textEdited.connect(self.textChanged)
+        self.lineEdit.returnPressed.connect(self.textChanged)
+        self.lineEdit.setValidator(QDoubleValidator(0.0, 10.0, 3))
+
+        self.hBoxLayout.addWidget(self.lineEdit, 0, Qt.AlignRight)
+        self.hBoxLayout.addSpacing(16)
+
+        setting.signalConnect(self.setEvent)
+        self.window().initFinished.connect(self.set)
+
+        self.set()
+
+    def set(self):
+        self.lineEdit.blockSignals(True)
+        self.lineEdit.setText(str(setting.read("shuffleAnimationLength")))
+        self.lineEdit.blockSignals(False)
+
+    def setEvent(self, msg):
+        if msg == "shuffleAnimationLength":
+            self.set()
+
+    def textChanged(self):
+        try:
+            setting.save("shuffleAnimationLength", float(self.lineEdit.text()))
+        except:
+            return
+
+
+class AnimationDelaySettingCard(SettingCard):
+
+    def __init__(self, parent=None):
+        super().__init__(FIF.SPEED_HIGH, "动画延迟", "名称标签移动动画之间的延迟", parent)
+        self.lineEdit = AcrylicLineEdit(self)
+        self.lineEdit.setPlaceholderText("延迟秒数")
+        self.lineEdit.setNewToolTip("名称标签移动动画之间的延迟")
+        self.lineEdit.textEdited.connect(self.textChanged)
+        self.lineEdit.returnPressed.connect(self.textChanged)
+        self.lineEdit.setValidator(QDoubleValidator(0.0, 10.0, 3))
+
+        self.hBoxLayout.addWidget(self.lineEdit, 0, Qt.AlignRight)
+        self.hBoxLayout.addSpacing(16)
+
+        setting.signalConnect(self.setEvent)
+        self.window().initFinished.connect(self.set)
+
+        self.set()
+
+    def set(self):
+        self.lineEdit.blockSignals(True)
+        self.lineEdit.setText(str(setting.read("shuffleAnimationDelay")))
+        self.lineEdit.blockSignals(False)
+
+    def setEvent(self, msg):
+        if msg == "shuffleAnimationDelay":
+            self.set()
+
+    def textChanged(self):
+        try:
+            setting.save("shuffleAnimationDelay", float(self.lineEdit.text()))
+        except:
+            return
+
+
+class RetrySettingCard(SettingCard):
+
+    def __init__(self, parent=None):
+        super().__init__(FIF.DATE_TIME, "重试次数", "排座失败后重试的次数，设置更高的次数会提高成功概率，\n过高的次数可能会导致程序卡顿", parent)
+        self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
+
+        self.lineEdit = AcrylicLineEdit(self)
+        self.lineEdit.setPlaceholderText("重试次数")
+        self.lineEdit.setNewToolTip("排座失败后重试的次数")
+        self.lineEdit.textEdited.connect(self.textChanged)
+        self.lineEdit.returnPressed.connect(self.textChanged)
+        self.lineEdit.setValidator(QIntValidator(1, 100000))
+
+        self.hBoxLayout.addWidget(self.lineEdit, 0, Qt.AlignRight)
+        self.hBoxLayout.addSpacing(16)
+
+        setting.signalConnect(self.setEvent)
+        self.window().initFinished.connect(self.set)
+
+        self.set()
+
+    def set(self):
+        self.lineEdit.blockSignals(True)
+        self.lineEdit.setText(str(setting.read("shuffleRetryTime")))
+        self.lineEdit.blockSignals(False)
+
+    def setEvent(self, msg):
+        if msg == "shuffleRetryTime":
+            self.set()
+
+    def textChanged(self):
+        try:
+            setting.save("shuffleRetryTime", float(self.lineEdit.text()))
+        except:
+            return
 
 
 class Manager(QWidget):
@@ -568,7 +684,6 @@ class Manager(QWidget):
                 widget = PeopleWidgetBase(self.listInterface, self.listInterface.cardGroup)
                 people_widget.move_back = False
                 self.listInterface.cardGroup.addCard(widget, k)
-                widget.layout()
                 if isinstance(parent, PeopleWidgetTableBase) or not parent:
                     widget.setPeople(people_widget, True)
                 else:
