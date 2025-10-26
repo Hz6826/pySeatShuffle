@@ -20,6 +20,7 @@ class MainPage(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
+        manager.mainPage = self
 
         self.hBoxLayout = QHBoxLayout(self)
 
@@ -153,8 +154,7 @@ class ShuffleInterface(HeaderCardWidget):
         peoples = manager.getPeoples()
         if not table or not peoples:
             return
-        self.shuffleButton.setEnabled(False)
-        manager.tableInterface.closeButton.setEnabled(False)
+        manager.mainPage.setEnabled(False)
         table = manager.getTable()
 
         manager.clearTablePeople()
@@ -180,8 +180,7 @@ class ShuffleInterface(HeaderCardWidget):
         except core.NoValidArrangementError:
             logging.error("没有有效的排座方案！")  # TODO
         time.sleep(0.25)
-        self.shuffleButton.setEnabled(True)
-        manager.tableInterface.closeButton.setEnabled(True)
+        manager.mainPage.setEnabled(True)
 
     def handleClearButtonClicked(self):
         if not manager.table:

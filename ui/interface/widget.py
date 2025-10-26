@@ -381,6 +381,7 @@ class Manager(QWidget):
         self.table_widget: dict = {}
 
         try:
+            self.mainPage = self.parent().mainPage
             self.editInterface = self.parent().mainPage.editInterface
             self.shuffleInterface = self.parent().mainPage.shuffleInterface
             self.tableInterface = self.parent().mainPage.tableInterface
