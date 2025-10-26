@@ -88,9 +88,14 @@ class PeopleWidget(QFrame):
             self.animation_group.stop()
             self.moveAnimationFinished()
 
+    def setTransparent(self, value: float):
+        opacity_effect = QGraphicsOpacityEffect()
+        opacity_effect.setOpacity(value)
+        self.setGraphicsEffect(opacity_effect)
+
     def moveAnimation(self, old_pixmap: QPixmap, old_pos: QPoint, new_pos: QPoint):
         self.stopAnimation()
-        self.hide()
+        self.setTransparent(0.0)
         if hasattr(self, 'old_temp_widget'):
             self.old_temp_widget.hide()
             self.old_temp_widget.deleteLater()
@@ -110,9 +115,9 @@ class PeopleWidget(QFrame):
         # 创建新位置的临时控件（使用当前状态渲染）
         new_pixmap = QPixmap(self.size())
         new_pixmap.fill(Qt.transparent)
-        self.show()
+        self.setTransparent(1.0)
         self.render(new_pixmap)
-        self.hide()
+        self.setTransparent(0.0)
 
         self.new_temp_widget = QLabel(self.window())
         self.new_temp_widget.setAttribute(Qt.WA_TranslucentBackground)
@@ -177,7 +182,7 @@ class PeopleWidget(QFrame):
         self.animation_group.start()
 
     def moveAnimationFinished(self):
-        self.show()
+        self.setTransparent(1.0)
         if hasattr(self, 'old_temp_widget'):
             self.old_temp_widget.hide()
             self.old_temp_widget.deleteLater()
