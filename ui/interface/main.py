@@ -1,3 +1,5 @@
+import logging
+
 from .widget import *
 
 
@@ -280,10 +282,10 @@ class ShuffleInterface(HeaderCardWidget):
             table = manager.getTable()
             if not table:
                 return
-            presets = manager.getTablePeoples()
-            table.clear_all_users()
-            for k, v in presets.items():
-                table.set_user_in_pos(k, v)
+            # presets = manager.getTablePeoples()
+            # table.clear_all_users()
+            # for k, v in presets.items():
+            #     table.set_user_in_pos(k, v)
             path, _ = QFileDialog.getSaveFileName(self, "导出座位表格文件", setting.read("downloadPath"), "Excel 文件 (*.xlsx *.xls);;JSON 文件 (*.json)")
             if not path:
                 return
