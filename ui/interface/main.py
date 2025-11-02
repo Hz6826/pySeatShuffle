@@ -215,7 +215,7 @@ class ShuffleInterface(HeaderCardWidget):
         try:
             for i in shuffler:
                 if i.success:
-                    self.shuffleSignal.emit(tuple(i.seat.pos), i.person)
+                    self.shuffleSignal.emit(i.seat.pos, i.person)
                     logging.info(f"成功将{i.person.get_name()}（属性：{i.person.get_properties()}）放置于座位{i.seat}。")
                     time.sleep(setting.read("shuffleAnimationDelay"))
                 else:
