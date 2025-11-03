@@ -199,6 +199,7 @@ class ShuffleInterface(HeaderCardWidget):
         peoples = manager.getPeoples()
         if not table or not peoples:
             return
+        manager.editInterface.pivot.setCurrentItem("名单")
         manager.mainPage.setEnabled(False)
         table = manager.getTable()
 
