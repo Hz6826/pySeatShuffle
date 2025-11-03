@@ -356,7 +356,11 @@ class EditInterface(HeaderCardWidget):
 
             setKeyMessageBox = SetKeyMessageBox(self.window(), keys)
             try:
-                key = keys[setKeyMessageBox.exec()]
+                result = setKeyMessageBox.exec()
+                if not setKeyMessageBox.result:
+                    return
+                else:
+                    key = keys[result]
             except:
                 return
             people = manager.PEOPLE_PARSER.parse(get[0], key)

@@ -507,11 +507,13 @@ class SetKeyMessageBox(MessageBoxBase):
 
         self.yesButton.setText("确认")
         self.cancelButton.setText("取消")
-        self.cancelButton.hide()
 
         self.yesButton.clicked.connect(self.yesButtonClicked)
 
+        self.result = None
+
     def yesButtonClicked(self):
+        self.result = self.comboBox.currentIndex()
         self.done(self.comboBox.currentIndex())
 
 
@@ -524,7 +526,7 @@ class Manager(QWidget):
     def __init__(self):
         super().__init__()
         self.table: core.SeatTable = None
-        self.people: dict = {}  # {name:{"people":core.Person, "widget": PeopleWidget}}
+        self.people: dict = {}  # {id:{"people":core.Person, "widget": PeopleWidget}}
         self.table_widget: dict = {}
 
         try:
