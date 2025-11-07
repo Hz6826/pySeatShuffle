@@ -11,7 +11,7 @@ def addonInit():
 
     setting.adds({"shuffleAnimationLength": 1.0,
                   "shuffleAnimationDelay": 0.1,
-                  "shuffleRetryTime": 200,
+                  "shuffleRetryTime": 5000,
                   "randomSeatGroup": False,
                   "skipUnavailable": True,
                   })
@@ -194,7 +194,7 @@ class ShuffleInterface(HeaderCardWidget):
         self.vBoxLayout2.addLayout(self.hBoxLayout1)
         self.vBoxLayout2.addLayout(self.hBoxLayout2)
 
-        self.shuffleSignal.connect(lambda pos, person: manager.setTablePeople(pos, person))
+        self.shuffleSignal.connect(lambda pos, person: manager.setTablePerson(pos, person))
         self.shuffleFinishedSignal.connect(self.shuffleFinished)
 
     def settingButtonClicked(self):
@@ -203,17 +203,17 @@ class ShuffleInterface(HeaderCardWidget):
 
     def shuffleButtonClicked(self):
         table = manager.getTable()
-        people = manager.getPeoples()
-        if not table or not people:
+        person = manager.getPeople()
+        if not table or not person:
             return
         manager.editInterface.pivot.setCurrentItem("名单")
         manager.mainPage.setEnabled(False)
         table = manager.getTable()
 
-        wait_back: bool = any(isinstance(i.parent(), PeopleWidgetTableBase) for i in manager.getPeopleWidgets())
-        manager.clearTablePeople()
+        wait_back: bool = any(isinstance(i.parent(), PersonWidgetTableBase) for i in manager.getPersonWidgets())
+        manager.clearTablePerson()
         shuffler = core.Shuffler(
-            people,
+            person,
             table,
             manager.getRuleSet(),
             core.ShufflerConfig(
@@ -278,7 +278,7 @@ class ShuffleInterface(HeaderCardWidget):
         )
 
         def confirm():
-            manager.clearTablePeople()
+            manager.clearTablePerson()
             self.clearButton.setEnabled(True)
             infoBar.close()
             InfoBar.info("成功！", "已清空预览区所有人员！", parent=manager.mainPage)
@@ -372,7 +372,7 @@ class RulesInterface(zbw.BasicTab):
         self.vBoxLayout.addWidget(self.cardGroup)
 
     def addButtonClicked(self):
-        if not manager.people_keys:
+        if not manager.person_keys:
             return
 
         messageBox = AddRuleMessageBox(self.window())
@@ -394,11 +394,11 @@ class ListInterface(zbw.BasicTab):
         self.listChooser.setDefaultPath(setting.read("downloadPath"))
         self.listChooser.setDescription("名单")
         self.listChooser.setFixedHeight(100)
-        self.listChooser.fileChoosedSignal.connect(self.importPeople)
+        self.listChooser.fileChoosedSignal.connect(self.importPerson)
 
         self.cardGroup = zbw.CardGroup("当前人数 (0/0)", self)
         self.cardGroup.boxLayout.insertSpacing(1, -12)
-        self.cardGroup.cardCountChanged.connect(manager.peopleNumberChanged)
+        self.cardGroup.cardCountChanged.connect(manager.personNumberChanged)
 
         self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
         self.vBoxLayout.setSpacing(8)
@@ -411,11 +411,11 @@ class ListInterface(zbw.BasicTab):
         if name == "downloadPath":
             self.listChooser.setDefaultPath(setting.read("downloadPath"))
 
-    def importPeople(self, get):
+    def importPerson(self, get):
         try:
             if not get:
                 return
-            keys = manager.PEOPLE_PARSER.get_keys(get[0])
+            keys = manager.PERSON_PARSER.get_keys(get[0])
 
             setKeyMessageBox = SetKeyMessageBox(self.window(), keys)
             try:
@@ -426,10 +426,10 @@ class ListInterface(zbw.BasicTab):
                     key = keys[result]
             except:
                 return
-            manager.people_keys = keys
-            people = manager.PEOPLE_PARSER.parse(get[0], key)
-            manager.setPeoples(people)
-            manager.setListPeoples(True)
+            manager.person_keys = keys
+            person = manager.PERSON_PARSER.parse(get[0], key)
+            manager.setPeople(person)
+            manager.setListPeople(True)
             manager.removeRules()
             setting.save("downloadPath", zb.getFileDir(get[0]))
             logging.info(f"导入名单表格文件{get[0]}成功！")

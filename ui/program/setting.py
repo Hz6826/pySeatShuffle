@@ -17,7 +17,7 @@ class SettingFunctions(QObject):
                        "hideWhenClose": True,
                        "shuffleAnimationLength": 1.0,
                        "shuffleAnimationDelay": 0.1,
-                       "shuffleRetryTime": 200,
+                       "shuffleRetryTime": 5000,
                        "randomSeatGroup": False,
                        "skipUnavailable": True,
                        }
