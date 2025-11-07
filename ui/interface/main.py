@@ -1,3 +1,4 @@
+import core
 from .widget import *
 
 
@@ -196,8 +197,8 @@ class ShuffleInterface(HeaderCardWidget):
 
     def shuffleButtonClicked(self):
         table = manager.getTable()
-        peoples = manager.getPeoples()
-        if not table or not peoples:
+        people = manager.getPeople()
+        if not table or not people:
             return
         manager.editInterface.pivot.setCurrentItem("名单")
         manager.mainPage.setEnabled(False)
@@ -205,7 +206,16 @@ class ShuffleInterface(HeaderCardWidget):
 
         wait_back: bool = any(isinstance(i.parent(), PeopleWidgetTableBase) for i in manager.getPeopleWidgets())
         manager.clearTablePeople()
-        shuffler = core.Shuffler(peoples, table, manager.getRuleSet())
+        shuffler = core.Shuffler(
+            people,
+            table,
+            manager.getRuleSet(),
+            core.ShufflerConfig(
+                core.SequenceMode.RANDOM,  # TODO
+                True  # TODO
+            )
+        )
+
         program.THREAD_POOL.submit(self.shuffle, shuffler, wait_back)
 
     def shuffle(self, shuffler, wait_back: bool):

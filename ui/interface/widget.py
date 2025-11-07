@@ -747,7 +747,7 @@ class Manager(QWidget):
             return id
         return None
 
-    def getPeoples(self):
+    def getPeople(self):
         """
         获取所有core.Person
         :return:
