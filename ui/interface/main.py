@@ -1,4 +1,3 @@
-import core
 from .widget import *
 
 
