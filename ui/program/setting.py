@@ -18,6 +18,8 @@ class SettingFunctions(QObject):
                        "shuffleAnimationLength": 1.0,
                        "shuffleAnimationDelay": 0.1,
                        "shuffleRetryTime": 200,
+                       "randomSeatGroup": False,
+                       "skipUnavailable": True,
                        }
     changeSignal = pyqtSignal(str)
     errorState = False  # 错误信息

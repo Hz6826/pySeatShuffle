@@ -17,6 +17,8 @@ try:
         setting.adds({"shuffleAnimationLength": 1.0,
                       "shuffleAnimationDelay": 0.1,
                       "shuffleRetryTime": 200,
+                      "randomSeatGroup": False,
+                      "skipUnavailable": True,
                       })
 except:
     import core
@@ -491,6 +493,75 @@ class RetrySettingCard(SettingCard):
             return
 
 
+class RandomSeatGroupSettingCard(SettingCard):
+
+    def __init__(self, parent=None):
+        super().__init__(FIF.DATE_TIME, "随机小组排座", "开启后将随机选择小组排座，而非按照排列顺序排座，增加随机性", parent)
+        self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
+
+        self.switchButton = SwitchButton(self)
+        self.switchButton.setNewToolTip("随机小组排座")
+        self.switchButton.checkedChanged.connect(self.checkChanged)
+
+        self.hBoxLayout.addWidget(self.switchButton, 0, Qt.AlignRight)
+        self.hBoxLayout.addSpacing(16)
+
+        setting.signalConnect(self.setEvent)
+        self.window().initFinished.connect(self.set)
+
+        self.set()
+
+    def set(self):
+        self.switchButton.blockSignals(True)
+        self.switchButton.setChecked(setting.read("randomSeatGroup"))
+        self.switchButton.blockSignals(False)
+
+    def setEvent(self, msg):
+        if msg == "randomSeatGroup":
+            self.set()
+
+    def checkChanged(self):
+        try:
+            setting.save("randomSeatGroup", self.switchButton.checked)
+        except:
+            return
+
+
+class SkipUnavailableSettingCard(SettingCard):
+
+    def __init__(self, parent=None):
+        super().__init__(FIF.DATE_TIME, "跳过不可用位置", "开启后若座位无解，将跳过该座位", parent)
+        self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
+
+        self.switchButton = SwitchButton(self)
+        self.switchButton.setNewToolTip("跳过不可用位置")
+        self.switchButton.checkedChanged.connect(self.checkChanged)
+
+        self.hBoxLayout.addWidget(self.switchButton, 0, Qt.AlignRight)
+        self.hBoxLayout.addSpacing(16)
+
+        setting.signalConnect(self.setEvent)
+        self.window().initFinished.connect(self.set)
+
+        self.set()
+
+    def set(self):
+        self.switchButton.blockSignals(True)
+        self.switchButton.setChecked(setting.read("skipUnavailable"))
+        self.switchButton.blockSignals(False)
+
+    def setEvent(self, msg):
+        if msg == "skipUnavailable":
+            self.set()
+
+    def checkChanged(self):
+        try:
+            setting.save("skipUnavailable", self.switchButton.checked)
+        except:
+            return
+
+
+
 class SetKeyMessageBox(MessageBoxBase):
     def __init__(self, parent=None, keys: list = None):
         super().__init__(parent)
@@ -747,7 +818,7 @@ class Manager(QWidget):
             return id
         return None
 
-    def getPeople(self):
+    def getPeoples(self):
         """
         获取所有core.Person
         :return:

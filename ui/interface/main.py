@@ -12,6 +12,8 @@ def addonInit():
     setting.adds({"shuffleAnimationLength": 1.0,
                   "shuffleAnimationDelay": 0.1,
                   "shuffleRetryTime": 200,
+                  "randomSeatGroup": False,
+                  "skipUnavailable": True,
                   })
     addonInit1()
 
@@ -137,16 +139,20 @@ class SettingMessageBox(zbw.ScrollMessageBoxBase):
         self.animationDelaySettingCard = AnimationDelaySettingCard(self)
 
         self.retrySettingCard = RetrySettingCard(self)
+        self.randomSeatGroupSettingCard = RandomSeatGroupSettingCard(self)
+        self.skipUnavailableSettingCard = SkipUnavailableSettingCard(self)
 
         self.cardGroup1.addCard(self.animationLengthSettingCard, "animationLengthSettingCard")
         self.cardGroup1.addCard(self.animationDelaySettingCard, "animationDelaySettingCard")
 
         self.cardGroup2.addCard(self.retrySettingCard, "retrySettingCard")
+        self.cardGroup2.addCard(self.randomSeatGroupSettingCard, "randomSeatGroupSettingCard")
+        self.cardGroup2.addCard(self.skipUnavailableSettingCard, "skipUnavailableSettingCard")
 
         self.scrollLayout.addWidget(self.cardGroup1, 0, Qt.AlignTop)
         self.scrollLayout.addWidget(self.cardGroup2, 0, Qt.AlignTop)
 
-        self.widget.setFixedSize(600, 400)
+        self.widget.setFixedSize(600, 500)
 
 
 class ShuffleInterface(HeaderCardWidget):
@@ -197,7 +203,7 @@ class ShuffleInterface(HeaderCardWidget):
 
     def shuffleButtonClicked(self):
         table = manager.getTable()
-        people = manager.getPeople()
+        people = manager.getPeoples()
         if not table or not people:
             return
         manager.editInterface.pivot.setCurrentItem("名单")
@@ -211,8 +217,8 @@ class ShuffleInterface(HeaderCardWidget):
             table,
             manager.getRuleSet(),
             core.ShufflerConfig(
-                core.SequenceMode.RANDOM,  # TODO
-                True  # TODO
+                int(setting.read("randomSeatGroup")),
+                setting.read("skipUnavailable")
             )
         )
 
@@ -226,9 +232,10 @@ class ShuffleInterface(HeaderCardWidget):
         try:
             for i in shuffler:
                 if i.success:
-                    self.shuffleSignal.emit(tuple(i.seat.pos), i.person)
-                    logging.info(f"成功将{i.person.get_name()}（属性：{i.person.get_properties()}）放置于座位{i.seat}。")
-                    time.sleep(setting.read("shuffleAnimationDelay"))
+                    if not isinstance(i.person, core.FakePerson):
+                        self.shuffleSignal.emit(tuple(i.seat.pos), i.person)
+                        logging.info(f"成功将{i.person.get_name()}（属性：{i.person.get_properties()}）放置于座位{i.seat}。")
+                        time.sleep(setting.read("shuffleAnimationDelay"))
                 else:
                     if i.seat:
                         logging.warning(f"无法将{i.person.get_name()}（属性：{i.person.get_properties()}）放置于座位{i.seat}！")
