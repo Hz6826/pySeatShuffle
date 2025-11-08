@@ -19,7 +19,9 @@ class SettingFunctions(QObject):
                        "shuffleAnimationDelay": 0.1,
                        "shuffleRetryTime": 5000,
                        "randomSeatGroup": False,
+                       "randomSeat": False,
                        "skipUnavailable": True,
+                       "fontSize": 20,
                        }
     changeSignal = pyqtSignal(str)
     errorState = False  # 错误信息
@@ -28,6 +30,14 @@ class SettingFunctions(QObject):
         super().__init__()
         program.THREAD_POOL.submit(self.checkFileChange)
         self.__read()
+
+    def get(self, name: str):
+        """
+        读取设置
+        @param name: 选项名称
+        @return: 选项内容
+        """
+        return self.read(name)
 
     def read(self, name: str):
         """
@@ -44,11 +54,19 @@ class SettingFunctions(QObject):
         try:
             with open(program.SETTING_FILE_PATH, "r", encoding="utf-8") as file:
                 self.last_setting = json.load(file)
-        except Exception as ex:
+        except:
             self.last_setting = deepcopy(self.DEFAULT_SETTING)
             self.reset()
             self.errorState = True
-            logging.error(f"设置文件数据错误，已自动恢复至默认选项，错误信息：{ex}！")
+            logging.error(f"设置文件数据错误，已自动恢复至默认选项，错误信息：{traceback.format_exc()}！")
+
+    def set(self, name: str, data):
+        """
+        保存设置
+        @param name: 选项名称
+        @param data: 选项数据
+        """
+        self.save(name, data)
 
     def save(self, name: str, data):
         """
@@ -58,6 +76,7 @@ class SettingFunctions(QObject):
         """
         logging.debug(f"保存设置{name}：{data}")
         self.last_setting[name] = data
+        self.changeEvent(name)
         self.__save()
 
     def __save(self):
@@ -133,8 +152,8 @@ class SettingFunctions(QObject):
                     self.last_setting = self.current_setting
                     for i in l:
                         self.changeEvent(i)
-            except Exception as ex:
-                logging.error(f"设置文件数据数据错误，错误信息：{ex}！")
+            except:
+                logging.error(f"设置文件数据数据错误，错误信息：{traceback.format_exc()}！")
 
     def __compare(self, old: dict, new: dict):
         keys = []

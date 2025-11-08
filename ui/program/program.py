@@ -18,6 +18,7 @@ from qfluentwidgets import FluentIcon as FIF
 
 import zbToolLib as zb
 import zbWidgetLib as zbw
+from zbWidgetLib import ZBF
 from qtpy import *
 
 import core
@@ -69,6 +70,10 @@ class Program:
         # 打包后资源路径切换
         if self.isExe:
             self.SOURCE_PATH = sys._MEIPASS + r"\img"
+        ZBF.setPath("icons")
+        for i in zb.walkFile("icons", True):
+            name = "_".join(zb.getFileName(i).split("_")[:-1])
+            ZBF.add(name)
 
     @property
     def ICON(self):
