@@ -19,7 +19,7 @@ class SettingFunctions(QObject):
                        "shuffleAnimationDelay": 0.1,
                        "shuffleRetryTime": 5000,
                        "randomSeatGroup": False,
-                       "randomSeat": False,
+                       "randomSeat": 1,
                        "skipUnavailable": True,
                        "fontSize": 20,
                        }
