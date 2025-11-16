@@ -32,7 +32,7 @@ class ThemeSettingCard(ExpandSettingCard):
         self.viewLayout.addWidget(self.radioButton2)
         self.viewLayout.addWidget(self.radioButton3)
 
-        setting.signalConnect(self.setEvent)
+        setting.connect(self.setEvent)
         self.window().initFinished.connect(self.set)
 
         self._adjustViewSize()
@@ -145,7 +145,7 @@ class ColorSettingCard(ExpandGroupSettingCard):
 
         self._adjustViewSize()
 
-        setting.signalConnect(self.setEvent)
+        setting.connect(self.setEvent)
         self.window().initFinished.connect(self.set)
 
         self.timer = QTimer(self)
@@ -250,7 +250,7 @@ class WindowEffectSettingCard(ExpandSettingCard):
         self.viewLayout.addWidget(self.radioButton4)
         self.viewLayout.addWidget(self.radioButton5)
 
-        setting.signalConnect(self.setEvent)
+        setting.connect(self.setEvent)
         qconfig.themeChanged.connect(lambda x: self.set)
         self.window().initFinished.connect(self.set)
 

@@ -63,7 +63,7 @@ class PersonWidget(QFrame):
 
         self.setStyleSheet("background: transparent;")
 
-        setting.signalConnect(self.setFontSize)
+        setting.connect(self.setFontSize)
         self.setFontSize()
 
     def setFontSize(self, msg="fontSize"):
@@ -421,7 +421,7 @@ class AnimationLengthSettingCard(SettingCard):
         self.hBoxLayout.addWidget(self.lineEdit, 0, Qt.AlignRight)
         self.hBoxLayout.addSpacing(16)
 
-        setting.signalConnect(self.setEvent)
+        setting.connect(self.setEvent)
         self.window().initFinished.connect(self.set)
 
         self.set()
@@ -458,7 +458,7 @@ class AnimationDelaySettingCard(SettingCard):
         self.hBoxLayout.addWidget(self.lineEdit, 0, Qt.AlignRight)
         self.hBoxLayout.addSpacing(16)
 
-        setting.signalConnect(self.setEvent)
+        setting.connect(self.setEvent)
         self.window().initFinished.connect(self.set)
 
         self.set()
@@ -497,7 +497,7 @@ class RetrySettingCard(SettingCard):
         self.hBoxLayout.addWidget(self.lineEdit, 0, Qt.AlignRight)
         self.hBoxLayout.addSpacing(16)
 
-        setting.signalConnect(self.setEvent)
+        setting.connect(self.setEvent)
         self.window().initFinished.connect(self.set)
 
         self.set()
@@ -536,7 +536,7 @@ class FontSizeSettingCard(SettingCard):
         self.hBoxLayout.addWidget(self.lineEdit, 0, Qt.AlignRight)
         self.hBoxLayout.addSpacing(16)
 
-        setting.signalConnect(self.setEvent)
+        setting.connect(self.setEvent)
         self.window().initFinished.connect(self.set)
 
         self.set()
@@ -575,7 +575,7 @@ class RandomSeatSettingCard(SettingCard):
         self.hBoxLayout.addWidget(self.comboBox, 0, Qt.AlignRight)
         self.hBoxLayout.addSpacing(16)
 
-        setting.signalConnect(self.setEvent)
+        setting.connect(self.setEvent)
         self.window().initFinished.connect(self.set)
 
         self.set()
@@ -609,7 +609,7 @@ class RandomSeatGroupSettingCard(SettingCard):
         self.hBoxLayout.addWidget(self.switchButton, 0, Qt.AlignRight)
         self.hBoxLayout.addSpacing(16)
 
-        setting.signalConnect(self.setEvent)
+        setting.connect(self.setEvent)
         self.window().initFinished.connect(self.set)
 
         self.set()
@@ -649,7 +649,7 @@ class SkipUnavailableSettingCard(SettingCard):
         self.hBoxLayout.addWidget(self.switchButton, 0, Qt.AlignRight)
         self.hBoxLayout.addSpacing(16)
 
-        setting.signalConnect(self.setEvent)
+        setting.connect(self.setEvent)
         self.window().initFinished.connect(self.set)
 
         self.set()

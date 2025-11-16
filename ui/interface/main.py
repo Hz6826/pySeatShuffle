@@ -20,6 +20,10 @@ def addonInit():
     addonInit1()
 
 
+def addonDelete():
+    pass
+
+
 def addonWidget():
     return MainPage(window)
 
@@ -95,7 +99,7 @@ class TableInterface(HeaderCardWidget):
         self.tableChooser.setFixedSize(200, 120)
         self.viewLayout.addWidget(self.tableChooser, Qt.AlignCenter)
 
-        setting.signalConnect(self.settingChanged)
+        setting.connect(self.settingChanged)
         self.importTableFinishedSignal.connect(self.importTableFinished)
 
     def settingChanged(self, name):
@@ -443,7 +447,7 @@ class ListInterface(zbw.BasicTab):
         self.vBoxLayout.addWidget(self.listChooser, 0, Qt.AlignCenter)
         self.vBoxLayout.addWidget(self.cardGroup)
 
-        setting.signalConnect(self.settingChanged)
+        setting.connect(self.settingChanged)
         self.getKeyFinishedSignal.connect(self.getKeyFinished)
         self.importPersonFinishedSignal.connect(self.importPersonFinished)
 
