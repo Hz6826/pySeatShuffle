@@ -9,6 +9,7 @@ class Window(zbw.Window):
 
     def __init__(self):
         super().__init__()
+        sys.excepthook = self.errorHook
 
         manager.setParent(self)
         manager.hide()
@@ -17,7 +18,7 @@ class Window(zbw.Window):
         self.mainPage = MainPage(self)
         self.settingPage = SettingPage(self)
         self.aboutPage = AboutPage(self)
-        self.addPage(self.mainPage, "主页", FIF.HOME, "top")
+        self.addPage(self.mainPage, self.mainPage.title(), self.mainPage.icon(), "top")
         self.addSeparator("top")
         self.addSeparator("bottom")
         self.addPage(self.settingPage, self.settingPage.title(), self.settingPage.icon(), "bottom")
@@ -37,13 +38,15 @@ class Window(zbw.Window):
         w, h = desktop.width(), desktop.height()
         self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
 
-        self.settingPage.themeSettingCard.set()
-
         # 设置数据异常提醒
         if setting.errorState:
             self.infoBar = InfoBar(InfoBarIcon.ERROR, "错误", "设置文件数据错误，已自动恢复至默认选项，具体错误原因请查看程序日志！", Qt.Orientation.Vertical, True, -1, InfoBarPosition.TOP_RIGHT, self.mainPage)
             self.infoBar.show()
         self.initFinished.emit()
+
+    def errorHook(self, exc_type, exc_value, exc_traceback):
+        errorMessageBox = ErrorMessageBox("程序发生错误", "\n".join(traceback.format_exception(exc_type, exc_value, exc_traceback)), self)
+        errorMessageBox.show()
 
     def closeEvent(self, QCloseEvent):
         """
