@@ -98,7 +98,7 @@ class SeatGroup:
         }
 
     def __hash__(self):
-        return hash((self.name, self.seats))
+        return hash((self.name, tuple(self.seats)))
 
 
 class SeatTable:

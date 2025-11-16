@@ -133,10 +133,15 @@ class TableInterface(HeaderCardWidget):
 
     def importTableFinished(self, status, table, path):
         if status:
-            manager.setTable(table)
-            infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导入座位文件{zb.getFileName(path)}成功！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM, manager.mainPage)
-            self.tableChooser.hide()
-            self.closeButton.show()
+            try:
+                manager.setTable(table)
+                infoBar = InfoBar(InfoBarIcon.SUCCESS, "成功", f"导入座位文件{zb.getFileName(path)}成功！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM, manager.mainPage)
+                self.tableChooser.hide()
+                self.closeButton.show()
+            except:
+                logging.error(f"导入座位表格文件{path}失败，报错信息：{traceback.format_exc()}！")
+                self.importTableFinishedSignal.emit(False, core.SeatTable([], (0, 0)), path)
+                return
         else:
             infoBar = InfoBar(InfoBarIcon.ERROR, "失败", f"导入座位文件{zb.getFileName(path)}失败！", Qt.Orientation.Vertical, True, 5000, InfoBarPosition.BOTTOM, manager.mainPage)
         infoBar.show()

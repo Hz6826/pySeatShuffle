@@ -30,7 +30,8 @@ class Program:
     """
     NAME = "py排座工具"  # 程序名称
     VERSION = "0.0.1"  # 程序版本
-    CORE_VERSION = "5.3.2" # 内核版本
+    VERSION_CODE = 1  # 版本序数
+    CORE_VERSION = "5.4.0"  # 内核版本
     TITLE = f"{NAME} {VERSION}"  # 程序标题
     URL = "https://ianzb.github.io/project/zbGuiTemplate.html"  # 程序网址
     LICENSE = "GPLv3"  # 程序许可协议
@@ -122,7 +123,8 @@ class Program:
         """
         重启程序
         """
-        subprocess.Popen(self.MAIN_FILE_PATH)
+        if self.isExe:
+            subprocess.Popen(self.MAIN_FILE_PATH)
         logging.info("程序正在重启中！")
         os._exit(0)
 

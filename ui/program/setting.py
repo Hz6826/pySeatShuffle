@@ -1,6 +1,4 @@
 from .program import *
-import json
-from copy import *
 
 
 class SettingFunctions(QObject):
@@ -9,12 +7,8 @@ class SettingFunctions(QObject):
     """
     DEFAULT_SETTING = {"theme": "Theme.AUTO",
                        "themeColor": "default",
-                       "autoHide": True,
+                       "windowEffect": "Mica",
                        "downloadPath": zb.DOWNLOAD_PATH(),
-                       "showWindow": False,
-                       "micaEffect": True,
-                       "showTray": True,
-                       "hideWhenClose": True,
                        "shuffleAnimationLength": 1.0,
                        "shuffleAnimationDelay": 0.1,
                        "shuffleRetryTime": 5000,
