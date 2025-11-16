@@ -1,5 +1,13 @@
 """
 Rule Model
+
+Available rule types:
+
+- **identical_in_group:** provide 1 property, returns True if the property value is identical for ALL people in the group, otherwise False
+- **unique_in_group:** provide 1 property, returns True if everyone has different property values in the group, otherwise False
+- **check_sum_constraint:** provide 3 property, prop_key, op (==, !=, <, >, <=, >=) and value, return True if the sum of the specific prop meets the constraint
+- **check_average_constraint:** provide 3 property, prop_key, op (==, !=, <, >, <=, >=) and value, return True if the average of the specific prop meets the constraint
+- **check_sd_constraint:** provide 3 property, prop_key, op (==, !=, <, >, <=, >=) and value, return True if the standard deviation of the specific prop meets the constraint
 """
 
 import math
@@ -9,12 +17,7 @@ import bidict
 
 class Rule:
     """
-    Available rule types:
-    - identical_in_group: provide 1 property, returns True if the property value is identical for ALL people in the group, otherwise False
-    - unique_in_group: provide 1 property, returns True if everyone has different property values in the group, otherwise False
-    - check_sum_constraint: provide 3 property, prop_key, op (==, !=, <, >, <=, >=) and value, return True if the sum of the specific prop meets the constraint
-    - check_average_constraint: provide 3 property, prop_key, op (==, !=, <, >, <=, >=) and value, return True if the average of the specific prop meets the constraint
-    - check_sd_constraint: provide 3 property, prop_key, op (==, !=, <, >, <=, >=) and value, return True if the standard deviation of the specific prop meets the constraint
+    Rule model class
 
     :param t: rule type
     :param prop: list of property names to check
