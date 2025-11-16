@@ -103,9 +103,11 @@ class TableInterface(HeaderCardWidget):
             self.tableChooser.setDefaultPath(setting.read("downloadPath"))
 
     def clearTable(self):
+        self.closeButton.setEnabled(False)
         manager.removeTable()
         self.tableChooser.show()
         self.closeButton.hide()
+        self.closeButton.setEnabled(True)
 
     def importTable(self, path):
         if not path:
@@ -123,7 +125,7 @@ class TableInterface(HeaderCardWidget):
             elif zb.getFileSuffix(path) == ".json":
                 table = manager.JSON_PARSER.parse(path)
             else:
-                raise Error("文件格式不兼容！")
+                raise "文件格式不兼容！"
             setting.save("downloadPath", zb.getFileDir(path))
             logging.info(f"导入座位表格文件{path}成功！")
             self.importTableFinishedSignal.emit(True, table, path)

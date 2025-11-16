@@ -28,6 +28,8 @@ import webbrowser
 class ErrorMessageBox(zbw.ScrollMessageBox):
     def __init__(self, title: str, content: str, parent=None):
         super().__init__(title, content, parent)
+        logging.error(content)
+
         self.contentLabel.setSelectable()
         self.cancelButton.setText("关闭")
         self.yesButton.hide()
@@ -127,7 +129,7 @@ class PersonWidget(QFrame):
         super().setParent(a0)
 
     def stopAnimation(self):
-        if hasattr(self, "animation") and self.animation_group.state() == QPropertyAnimation.Running:
+        if hasattr(self, "animation_group") and self.animation_group.state() == QPropertyAnimation.Running:
             self.animation_group.stop()
             self.moveAnimationFinished()
 
@@ -292,8 +294,6 @@ class PersonWidgetTableBase(CardWidget):
         if old_parent is self:
             return
 
-        person.stopAnimation()
-
         # 在移动前获取旧位置的pixmap
         person.setTransparent(1.0)
         old_pixmap = QPixmap(person.size())
@@ -322,7 +322,7 @@ class PersonWidgetTableBase(CardWidget):
         self.vBoxLayout.addWidget(person)
         self.person.stackUnder(self.removeButton)
         self.layout().activate()  # 强制布局更新
-        QApplication.processEvents()  # 处理 pending 事件
+        QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)  # 处理 pending 事件
 
         new_pos = self.person.mapToGlobal(QPoint(0, 0)) - manager.mainPage.mapToGlobal(QPoint(0, 0))
 
@@ -330,7 +330,6 @@ class PersonWidgetTableBase(CardWidget):
         self.person.moveAnimation(old_pixmap, old_pos, new_pos)
 
     def removePerson(self):
-        self.removeNewToolTip()
         if self.person:
             self.vBoxLayout.removeWidget(self.person)
             self.person, person = None, self.person
@@ -374,8 +373,6 @@ class PersonWidgetBase(CardWidget):
         return self.person
 
     def setPerson(self, person: PersonWidget, animation: bool = True):
-        person.stopAnimation()
-
         if animation:
             # 在移动前获取旧位置的pixmap
             person.setTransparent(1.0)
@@ -391,7 +388,7 @@ class PersonWidgetBase(CardWidget):
         self.person = person
         self.vBoxLayout.addWidget(person)
 
-        QApplication.processEvents()  # 处理 pending 事件
+        QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)  # 处理 pending 事件
 
         if animation:
             new_pos = self.person.mapToGlobal(QPoint(0, 0)) - manager.mainPage.mapToGlobal(QPoint(0, 0))
@@ -1127,12 +1124,13 @@ class Manager(QWidget):
         """
         移除表格
         """
+        self.setListPeople(True)
         while self.tableInterface.gridLayout.count():
             item = self.tableInterface.gridLayout.takeAt(0)
             widget = item.widget()
             if widget is not None:
                 widget.deleteLater()
-        self.setListPeople(True)
+
         for r in range(self.tableInterface.gridLayout.rowCount()):
             self.tableInterface.gridLayout.setRowStretch(r, 0)
         for c in range(self.tableInterface.gridLayout.columnCount()):

@@ -45,7 +45,7 @@ class Window(zbw.Window):
         self.initFinished.emit()
 
     def errorHook(self, exc_type, exc_value, exc_traceback):
-        errorMessageBox = ErrorMessageBox("程序发生错误", "\n".join(traceback.format_exception(exc_type, exc_value, exc_traceback)), self)
+        errorMessageBox = ErrorMessageBox("程序发生错误", "".join(traceback.format_exception(exc_type, exc_value, exc_traceback)), self)
         errorMessageBox.show()
 
     def closeEvent(self, QCloseEvent):
