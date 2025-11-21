@@ -1,12 +1,12 @@
 aenum==3.1.16
 bidict==0.23.1
-certifi==2025.10.5
+certifi==2025.11.12
 charset-normalizer==3.4.4
 colorthief==0.2.1
 darkdetect==0.8.0
 et_xmlfile==2.0.0
 idna==3.11
-numpy==2.3.4
+numpy==2.3.5
 openpyxl==3.1.5
 packaging==25.0
 pillow==12.0.0
@@ -25,4 +25,4 @@ Send2Trash==1.8.3
 urllib3==2.5.0
 winshell==0.6
 zbToolLib==2.0.6.1
-zbWidgetLib==2.8.0
+zbWidgetLib==2.9.3

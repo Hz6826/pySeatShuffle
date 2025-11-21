@@ -73,8 +73,7 @@ class Program:
             self.SOURCE_PATH = sys._MEIPASS + r"\img"
         ZBF.setPath("icons")
         for i in zb.walkFile("icons", True):
-            name = "_".join(zb.getFileName(i).split("_")[:-1])
-            ZBF.add(name)
+            ZBF.add(zb.getFileName(i, False))
 
     @property
     def ICON(self):
