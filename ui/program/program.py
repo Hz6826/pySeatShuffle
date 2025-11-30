@@ -34,7 +34,7 @@ class Program:
     NAME = "py排座工具"  # 程序名称
     VERSION = "0.0.1"  # 程序版本
     VERSION_CODE = 1  # 版本序数
-    CORE_VERSION = "5.4.1"  # 内核版本
+    CORE_VERSION = "5.4.2"  # 内核版本
     TITLE = f"{NAME} {VERSION}"  # 程序标题
     URL = "https://ianzb.github.io/project/zbGuiTemplate.html"  # 程序网址
     LICENSE = "GPLv3"  # 程序许可协议
