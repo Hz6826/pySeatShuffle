@@ -12,7 +12,7 @@ packaging==25.0
 pillow==12.0.0
 puremagic==1.30
 PySide6==6.10.1
-PySide6-Fluent-Widgets==1.9.2
+PySide6-Fluent-Widgets==1.10.2
 PySide6_Addons==6.10.1
 PySide6_Essentials==6.10.1
 PySideSix-Frameless-Window==0.7.4
@@ -22,7 +22,7 @@ requests==2.32.5
 scipy==1.16.3
 Send2Trash==1.8.3
 shiboken6==6.10.1
-urllib3==2.5.0
+urllib3==2.6.2
 winshell==0.6
-zbToolLib==2.0.6.1
-zbWidgetLib==3.1.0
+zbToolLib==2.0.7
+zbWidgetLib==3.1.1.1
