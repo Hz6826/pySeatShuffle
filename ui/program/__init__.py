@@ -2,6 +2,7 @@ from logging.config import dictConfig
 
 from .program import *
 from .setting import *
+from .manager import *
 
 QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
@@ -44,8 +45,7 @@ dictConfig({
         "level": "DEBUG",
         "handlers": ["console", "log_file"],
     },
-}
-)
+})
 
 logging.info(f"程序启动参数{program.STARTUP_ARGUMENT}!")
 logging.debug(f"程序运行信息{Program.__dict__}{program.__dict__}!")

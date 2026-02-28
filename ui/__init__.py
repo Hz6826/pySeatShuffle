@@ -28,15 +28,15 @@ class Window(zbw.Window):
         self.navigationInterface.setAcrylicEnabled(True)
         # 窗口属性
         self.setMinimumSize(700, 500)
-        self.setWindowIcon(QIcon(program.ICON))
-        self.setWindowTitle(program.TITLE)
-        self.navigationInterface.setReturnButtonVisible(False)
-        self.show()
         self.resize(900, 700)
         # 窗口居中
         desktop = QApplication.screens()[0].size()
         w, h = desktop.width(), desktop.height()
         self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
+
+        self.setWindowIcon(QIcon(program.ICON))
+        self.setWindowTitle(program.TITLE)
+        self.navigationInterface.setReturnButtonVisible(False)
 
         # 设置数据异常提醒
         if setting.errorState:

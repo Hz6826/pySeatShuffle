@@ -8,7 +8,7 @@ class SettingFunctions(QObject):
     DEFAULT_SETTING = {"theme": "Theme.AUTO",
                        "themeColor": "default",
                        "windowEffect": "Mica",
-                       "downloadPath": zb.DOWNLOAD_PATH(),
+                       "downloadPath": zb.DOWNLOAD_PATH,
                        "shuffleAnimationLength": 1.0,
                        "shuffleAnimationDelay": 0.1,
                        "shuffleRetryTime": 5000,
@@ -35,6 +35,10 @@ class SettingFunctions(QObject):
             self.reset()
             self.errorState = True
             logging.error(f"设置文件数据错误，已自动恢复至默认选项，错误信息：{traceback.format_exc()}！")
+
+        for path in ["downloadPath"]:
+            if self.read(path) and not zb.existPath(self.read(path)):
+                self.reset(path)
 
     def _get_by_path(self, data_dict: dict, path: str):
         """

@@ -120,7 +120,7 @@ class ColorSettingCard(ExpandGroupSettingCard):
         self.button2 = RadioButton("自定义", self.radioWidget)
 
         self.button3 = QPushButton("选择颜色", self.customColorWidget)
-        self.button3.setNewToolTip("选择自定义颜色")
+        self.button3.setToolTip("选择自定义颜色")
         self.button3.clicked.connect(self.showColorDialog)
 
         self.radioLayout.addWidget(self.button1)
@@ -297,7 +297,7 @@ class DownloadSettingCard(SettingCard):
         super().__init__(FIF.DOWNLOAD, "下载文件", f"当前路径：{setting.read("downloadPath")}", parent)
         self.button1 = PushButton("下载目录", self, FIF.FOLDER_ADD)
         self.button1.clicked.connect(self.button1Clicked)
-        self.button1.setNewToolTip("设置下载文件夹目录")
+        self.button1.setToolTip("设置下载文件夹目录")
 
         self.hBoxLayout.addWidget(self.button1, 0, Qt.AlignRight)
         self.hBoxLayout.addSpacing(16)

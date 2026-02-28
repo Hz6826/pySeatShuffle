@@ -34,11 +34,11 @@ class Program:
     NAME = "py排座工具"  # 程序名称
     VERSION = "0.0.1"  # 程序版本
     VERSION_CODE = 1  # 版本序数
-    CORE_VERSION = "5.5.0"  # 内核版本
+    CORE_VERSION = "5.7.0"  # 内核版本
     TITLE = f"{NAME} {VERSION}"  # 程序标题
     URL = "https://ianzb.github.io/project/zbGuiTemplate.html"  # 程序网址
     LICENSE = "GPLv3"  # 程序许可协议
-    INFO = "© 2025 Ianzb & Hz6826. GPLv3 License."
+    INFO = "© 2025-2026 Ianzb & Hz6826. GPLv3 License."
     # UPDATE_URL = "http://123pan.ianzb.cn/Code/zbGuiTemplate/index.json"  # 更新网址
     # UPDATE_INSTALLER_URL = "http://123pan.ianzb.cn/Code/zbGuiTemplate/zbGuiTemplate_setup.exe"  # 更新安装包链接
     UNINSTALL_FILE = "unins000.exe"  # 卸载程序名称
@@ -50,7 +50,7 @@ class Program:
     MAIN_FILE_PATH = sys.argv[0]  # 程序主文件路径
     MAIN_FILE_NAME = zb.getFileName(MAIN_FILE_PATH)  # 当前程序文件名称
     INSTALL_PATH = zb.getFileDir(MAIN_FILE_PATH)  # 程序安装路径
-    RESOURCE_PATH = "resource"  # 程序资源文件路径
+    RESOURCE_PATH = zb.joinPath(INSTALL_PATH, "resource")  # 程序资源文件路径
     PID = os.getpid()  # 程序pid
     DATA_PATH = zb.joinPath(zb.USER_PATH, r"zb\pySeatShuffle")  # 程序数据路径
     SETTING_FILE_PATH = zb.joinPath(DATA_PATH, "settings.json")  # 程序设置文件路径
@@ -70,10 +70,6 @@ class Program:
         import ctypes
 
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(self.NAME)
-
-        # 打包后资源路径切换
-        if self.isExe:
-            self.RESOURCE_PATH = sys._MEIPASS + r"\resource"
 
         # 导入自定义图标
         ZBF.setPath("icons")
@@ -97,7 +93,7 @@ class Program:
         判断程序是否为
         @return:
         """
-        return ".exe" in self.MAIN_FILE_NAME
+        return zb.getFileSuffix(self.MAIN_FILE_NAME) == ".exe"
 
     def resource(self, *args):
         """
@@ -113,7 +109,7 @@ class Program:
         @param name: 文件名
         @return: 文件路径
         """
-        return zb.joinPath(self.DATA_PATH, "cache", *args)
+        return zb.joinPath(zb.TEMP_PATH, self.NAME, *args)
 
     def close(self):
         """
